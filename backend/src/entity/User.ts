@@ -5,12 +5,12 @@ export class User extends BaseEntity {
     @PrimaryColumn({type: "uuid"})
     user_id: string
 
-    @Column({type: "varchar2", length: 64})
+    @Column({type: "varchar", length: 64, nullable: false})
     name: string
 
-    @Column({type:"varchar2", length: 128})
+    @Column({type:"varchar", length: 128, nullable: false})
     email: string
 
-    @Column({type: "varchar2", enum: ["user"], length: 50})
+    @Column({type: "varchar", enum: ["user"], length: 50, default: "user"})
     role: string
 }
