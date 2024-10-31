@@ -50,6 +50,16 @@ async function addDocument(req: Request, res: Response) {
     return;
   }
 
+  const existingDocument = await DocumentRepository.findOneBy({
+    serial_number: serialNumber,
+  });
+  if (existingDocument) {
+    res.status(400).json({
+      message: "Document with serial number already exists",
+    });
+    return;
+  }
+
   const document = new Document();
   document.document_id = uuidv4();
   document.title = title;
