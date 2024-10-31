@@ -2,9 +2,11 @@ import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 
 import { AppDataSource } from "../data-source";
-import { Document } from "../entity";
+import { Document, User, CustodyHistory } from "../entity";
 
 const DocumentRepository = AppDataSource.getRepository(Document);
+const UserRepository = AppDataSource.getRepository(User);
+const CustodyHistoryRepository = AppDataSource.getRepository(CustodyHistory);
 
 async function getAllDocuments(req: Request, res: Response) {
   const allDocuments = await DocumentRepository.find({});
@@ -92,4 +94,67 @@ async function updateDocument(req: Request, res: Response) {
   });
 }
 
-export { getAllDocuments, getDocumentById, addDocument, updateDocument };
+async function transferDocumentCustody(req: Request, res: Response) {
+  const { id: document_id } = req.params;
+  const { newHolderId, comment } = req.body;
+
+  if (!newHolderId) {
+    res.status(400).json({
+      message: "Document receiver must be provided",
+      custodyHistory: null,
+    });
+    return;
+  }
+
+  const document = await DocumentRepository.findOneBy({ document_id });
+
+  if (!document) {
+    res.status(404).json({
+      message: "Document with id provided not found",
+      custodyHistory: null,
+    });
+    return;
+  }
+
+  const newHolder = await UserRepository.findOneBy({ user_id: newHolderId });
+  const previousHolderId = document.current_holder_id;
+
+  if (!newHolder) {
+    res.status(404).json({
+      message: "New holder of document not found",
+      custodyHistory: null,
+    });
+    return;
+  }
+
+  const history = new CustodyHistory();
+  history.history_id = uuidv4();
+  history.document_id = document_id;
+  history.current_holder_id = newHolderId;
+  history.timestamp = new Date();
+  history.comment = comment ? comment : "";
+  if (document.status === "assigned") {
+    history.previous_holder_id = previousHolderId;
+  }
+
+  document.current_holder_id = newHolderId;
+  if (document.status === "available") {
+    document.status = "assigned";
+  }
+
+  await CustodyHistoryRepository.save(history);
+  const savedDocument = await DocumentRepository.save(document);
+
+  res.status(200).json({
+    message: "Document custody transfer successful",
+    document: savedDocument,
+  });
+}
+
+export {
+  getAllDocuments,
+  getDocumentById,
+  addDocument,
+  updateDocument,
+  transferDocumentCustody,
+};
