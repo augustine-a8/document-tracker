@@ -14,7 +14,7 @@ const endpoints: Endpoint[] = [
 function createRoutes(app: Express) {
   endpoints.forEach((endpoint) => {
     const { path, router } = endpoint;
-    app.use(`/api/${path}`, router);
+    app.use(`/api${path}`, router);
   });
 }
 
