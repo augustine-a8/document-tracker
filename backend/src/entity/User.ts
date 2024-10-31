@@ -12,7 +12,15 @@ export class User extends BaseEntity {
   @Column({ type: "varchar", length: 128, nullable: false })
   email: string;
 
-  @Column({ type: "varchar", enum: ["user"], length: 50, default: "user" })
+  @Column({ type: "text" })
+  password: string;
+
+  @Column({
+    type: "varchar",
+    enum: ["user", "admin"],
+    length: 50,
+    default: "user",
+  })
   role: string;
 
   @OneToMany(
