@@ -1,27 +1,48 @@
-import {Entity, BaseEntity, Column, PrimaryColumn, OneToOne, JoinColumn} from 'typeorm'
-import { Document } from './Document'
-import { User } from './User'
+import {
+  Entity,
+  BaseEntity,
+  Column,
+  PrimaryColumn,
+  OneToOne,
+  ManyToOne,
+  JoinColumn,
+  Unique,
+} from "typeorm";
+import { Document } from "./Document";
+import { User } from "./User";
 
 @Entity()
+@Unique(["history_id", "document_id"])
+@Unique(["history_id", "previous_holder_id"])
+@Unique(["history_id", "current_holder_id"])
 export class CustodyHistory extends BaseEntity {
-    @PrimaryColumn({type: "uuid"})
-    history_id: string
-    
-    @OneToOne(() => Document)
-    @JoinColumn()
-    document_id: Document
+  @PrimaryColumn({ type: "uuid" })
+  history_id: string;
 
-    @OneToOne(() => User)
-    @JoinColumn()
-    previous_holder_id: User
+  @Column({ type: "uuid" })
+  document_id: string;
 
-    @OneToOne(() => User)
-    @JoinColumn()
-    current_holder_id: User
+  @ManyToOne(() => Document)
+  @JoinColumn({ name: "document_id" })
+  document: Document;
 
-    @Column({type: "text"})
-    comment: string
+  @Column({ type: "uuid", nullable: true })
+  previous_holder_id: string | null;
 
-    @Column({type: "timestamp"})
-    timestamp: Date
+  @ManyToOne(() => User)
+  @JoinColumn({ name: "previous_holder_id" })
+  previous_holder: User;
+
+  @Column({ type: "uuid" })
+  current_holder_id: string;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: "current_holder_id" })
+  current_holder: User;
+
+  @Column({ type: "text" })
+  comment: string;
+
+  @Column({ type: "timestamp" })
+  timestamp: Date;
 }

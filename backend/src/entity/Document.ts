@@ -5,8 +5,10 @@ import {
   BaseEntity,
   OneToOne,
   JoinColumn,
+  OneToMany,
 } from "typeorm";
 import { User } from "./User";
+import { CustodyHistory } from "./CustodyHistory";
 
 @Entity()
 export class Document extends BaseEntity {
@@ -30,7 +32,13 @@ export class Document extends BaseEntity {
   })
   status: string;
 
+  @Column({ type: "uuid", nullable: true })
+  current_holder_id: string | null;
+
   @OneToOne(() => User)
   @JoinColumn({ name: "current_holder_id" })
   current_holder: User;
+
+  @OneToMany(() => CustodyHistory, (custodyHistory) => custodyHistory.document)
+  custodyHistories: CustodyHistory[];
 }
