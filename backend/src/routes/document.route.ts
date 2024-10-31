@@ -9,14 +9,19 @@ import {
   transferDocumentCustody,
 } from "../controllers/document.controller";
 import { asyncHandler } from "../lib/async-wrapper";
+import { checkAuthentication } from "../middleware/check-auth";
 
 const router = Router();
 
-router.get("/", asyncHandler(getAllDocuments));
-router.get("/:id", asyncHandler(getDocumentById));
-router.post("/", asyncHandler(addDocument));
-router.patch("/:id", asyncHandler(updateDocument));
-router.post("/:id/transfer", asyncHandler(transferDocumentCustody));
+router.get("/", checkAuthentication, asyncHandler(getAllDocuments));
+router.get("/:id", checkAuthentication, asyncHandler(getDocumentById));
+router.post("/", checkAuthentication, asyncHandler(addDocument));
+router.patch("/:id", checkAuthentication, asyncHandler(updateDocument));
+router.post(
+  "/:id/transfer",
+  checkAuthentication,
+  asyncHandler(transferDocumentCustody)
+);
 
 const documentEndpoint: Endpoint = { path: "/document", router };
 
