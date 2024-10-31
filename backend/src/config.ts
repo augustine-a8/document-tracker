@@ -5,6 +5,7 @@ const Config = {
   database_user: process.env.DATABASE_USERNAME,
   database_port: parseInt(process.env.DATABASE_PORT as string, 10) || 5432,
   port: parseInt(process.env.PORT as string, 10) || 8888,
+  jwtSecret: process.env.JWT_SECRET,
 };
 
 export { Config };
