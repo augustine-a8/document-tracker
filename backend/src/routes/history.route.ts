@@ -1,18 +1,14 @@
 import { Router } from "express";
 
 import { Endpoint } from "../@types/endpoint";
-import { getCustodyHistoryForDocument } from "../controllers/history.controller";
+import { getAllCustodyHistory } from "../controllers/history.controller";
 import { asyncHandler } from "../lib/async-wrapper";
 import { checkAuthentication } from "../middleware/check-auth";
 
 const router = Router();
 
-router.get(
-  "/",
-  checkAuthentication,
-  asyncHandler(getCustodyHistoryForDocument)
-);
+router.get("/", checkAuthentication, asyncHandler(getAllCustodyHistory));
 
-const historyEndpoint: Endpoint = { path: "/documents/:id/history", router };
+const historyEndpoint: Endpoint = { path: "/history", router };
 
 export { historyEndpoint };
