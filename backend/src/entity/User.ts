@@ -3,8 +3,8 @@ import { CustodyHistory } from "./CustodyHistory";
 
 @Entity()
 export class User extends BaseEntity {
-  @PrimaryColumn({ type: "uuid" })
-  user_id: string;
+  @PrimaryColumn({ type: "uuid", name: "user_id" })
+  userId: string;
 
   @Column({ type: "varchar", length: 64, nullable: false })
   name: string;
@@ -23,15 +23,9 @@ export class User extends BaseEntity {
   })
   role: string;
 
-  @OneToMany(
-    () => CustodyHistory,
-    (custodyHistory) => custodyHistory.previous_holder
-  )
-  custodyHistoriesAsPreviousHolder: CustodyHistory[];
+  @OneToMany(() => CustodyHistory, (custodyHistory) => custodyHistory.sender)
+  custodyHistoriesAsSender: CustodyHistory[];
 
-  @OneToMany(
-    () => CustodyHistory,
-    (custodyHistory) => custodyHistory.current_holder
-  )
-  custodyHistoriesAsCurrentHolder: CustodyHistory[];
+  @OneToMany(() => CustodyHistory, (custodyHistory) => custodyHistory.receiver)
+  custodyHistoriesAsReceiver: CustodyHistory[];
 }
