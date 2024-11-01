@@ -28,4 +28,13 @@ async function getCustodyHistoryForDocument(req: Request, res: Response) {
   });
 }
 
-export { getCustodyHistoryForDocument };
+async function getAllCustodyHistory(req: Request, res: Response) {
+  const allHistory = await CustodyHistory.find({});
+
+  res.status(200).json({
+    message: "All history retrieved",
+    allHistory,
+  });
+}
+
+export { getCustodyHistoryForDocument, getAllCustodyHistory };
