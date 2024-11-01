@@ -10,7 +10,7 @@ import {
 import { Document } from "./Document";
 import { User } from "./User";
 
-@Entity()
+@Entity({ name: "custody_history" })
 @Unique(["history_id", "document_id"])
 @Unique(["history_id", "previous_holder_id"])
 @Unique(["history_id", "current_holder_id"])

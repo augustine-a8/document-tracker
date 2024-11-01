@@ -10,7 +10,7 @@ import {
 import { User } from "./User";
 import { CustodyHistory } from "./CustodyHistory";
 
-@Entity()
+@Entity({ name: "document" })
 export class Document extends BaseEntity {
   @PrimaryColumn({ type: "uuid", name: "document_id" })
   documentId: string;
