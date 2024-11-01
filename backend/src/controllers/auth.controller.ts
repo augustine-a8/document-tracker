@@ -36,6 +36,7 @@ async function login(req: Request, res: Response) {
     res.status(403).json({
       message: "Incorrect password",
     });
+    return;
   }
 
   const token = generateToken(user.user_id, user.email, user.role);
