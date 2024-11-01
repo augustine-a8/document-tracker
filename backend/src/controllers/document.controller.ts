@@ -19,7 +19,10 @@ async function getAllDocuments(req: Request, res: Response) {
 
 async function getDocumentById(req: Request, res: Response) {
   const { id: document_id } = req.params;
-  const document = await DocumentRepository.findOneBy({ document_id });
+  const document = await DocumentRepository.findOne({
+    where: { document_id },
+    relations: { current_holder: true, custodyHistories: true },
+  });
 
   if (!document) {
     res.status(404).json({
@@ -66,10 +69,11 @@ async function addDocument(req: Request, res: Response) {
   document.description = description ? description : "";
   document.serial_number = serialNumber;
 
-  await DocumentRepository.save(document);
+  const newDocument = await DocumentRepository.save(document);
 
   res.status(200).json({
     message: "New document added",
+    newDocument,
   });
 }
 
