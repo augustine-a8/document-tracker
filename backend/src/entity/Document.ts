@@ -12,8 +12,8 @@ import { CustodyHistory } from "./CustodyHistory";
 
 @Entity()
 export class Document extends BaseEntity {
-  @PrimaryColumn({ type: "uuid" })
-  document_id: string;
+  @PrimaryColumn({ type: "uuid", name: "document_id" })
+  documentId: string;
 
   @Column({ type: "varchar", length: 64, nullable: false })
   title: string;
@@ -21,23 +21,27 @@ export class Document extends BaseEntity {
   @Column({ type: "varchar", length: 255, nullable: false })
   description: string;
 
-  @Column({ type: "varchar", unique: true, nullable: false })
-  serial_number: string;
+  @Column({
+    type: "varchar",
+    name: "serial_number",
+    unique: true,
+    nullable: false,
+  })
+  serialNumber: string;
 
   @Column({
     type: "varchar",
-    enum: ["available", "assigned"],
     length: 50,
     default: "available",
   })
-  status: string;
+  type: string;
 
-  @Column({ type: "uuid", nullable: true })
-  current_holder_id: string | null;
+  @Column({ type: "uuid", name: "current_holder_id" })
+  currentHolderId: string | null;
 
   @OneToOne(() => User)
   @JoinColumn({ name: "current_holder_id" })
-  current_holder: User;
+  currentHolder: User;
 
   @OneToMany(() => CustodyHistory, (custodyHistory) => custodyHistory.document)
   custodyHistories: CustodyHistory[];

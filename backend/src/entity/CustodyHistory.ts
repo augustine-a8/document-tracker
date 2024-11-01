@@ -3,7 +3,6 @@ import {
   BaseEntity,
   Column,
   PrimaryColumn,
-  OneToOne,
   ManyToOne,
   JoinColumn,
   Unique,
@@ -16,33 +15,36 @@ import { User } from "./User";
 @Unique(["history_id", "previous_holder_id"])
 @Unique(["history_id", "current_holder_id"])
 export class CustodyHistory extends BaseEntity {
-  @PrimaryColumn({ type: "uuid" })
-  history_id: string;
+  @PrimaryColumn({ type: "uuid", name: "history_id" })
+  historyId: string;
 
-  @Column({ type: "uuid" })
-  document_id: string;
+  @Column({ type: "uuid", name: "document_id" })
+  documentId: string;
 
   @ManyToOne(() => Document)
   @JoinColumn({ name: "document_id" })
   document: Document;
 
-  @Column({ type: "uuid", nullable: true })
-  previous_holder_id: string | null;
+  @Column({ type: "uuid", name: "sender_id" })
+  senderId: string;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: "previous_holder_id" })
-  previous_holder: User;
+  @JoinColumn({ name: "sender_id" })
+  sender: User;
 
-  @Column({ type: "uuid" })
-  current_holder_id: string;
+  @Column({ type: "uuid", name: "receiver_id" })
+  receiverId: string;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: "current_holder_id" })
-  current_holder: User;
+  @JoinColumn({ name: "receiver_id" })
+  receiver: User;
 
   @Column({ type: "text" })
   comment: string;
 
-  @Column({ type: "timestamp" })
-  timestamp: Date;
+  @Column({ type: "timestamp", name: "sent_timestamp" })
+  sentTimestamp: Date;
+
+  @Column({ type: "timestamp", name: "acknowledged_timestamp" })
+  acknowledgedTimestamp: Date;
 }
