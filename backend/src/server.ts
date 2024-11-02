@@ -9,7 +9,7 @@ import { errorHandler } from "./middleware/error-handling";
 function createServer(): express.Express {
   const app = express();
 
-  const whitelist = ["http://example1.com", "http://example2.com"];
+  const whitelist = ["http://localhost:5173", "http://example2.com"];
   const corsOptionsDelegate = function (req: express.Request, callback: any) {
     let corsOptions;
     if (whitelist.indexOf(req.header("Origin") as string) !== -1) {
