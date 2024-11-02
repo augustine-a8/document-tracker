@@ -5,8 +5,8 @@ import {
   getAllDocuments,
   addDocument,
   getDocumentById,
-  updateDocument,
-  transferDocumentCustody,
+  sendDocument,
+  acknowledgeDocument,
 } from "../controllers/document.controller";
 import { asyncHandler } from "../lib/async-wrapper";
 import { checkAuthentication } from "../middleware/check-auth";
@@ -22,13 +22,9 @@ router.get(
   asyncHandler(getCustodyHistoryForDocument)
 );
 router.post("/", checkAuthentication, asyncHandler(addDocument));
-router.patch("/:id", checkAuthentication, asyncHandler(updateDocument));
-router.post(
-  "/:id/transfer",
-  checkAuthentication,
-  asyncHandler(transferDocumentCustody)
-);
+// router.patch("/:id", checkAuthentication, asyncHandler(updateDocument));
+router.post("/:id/send", checkAuthentication, asyncHandler(sendDocument));
 
-const documentEndpoint: Endpoint = { path: "/document", router };
+const documentEndpoint: Endpoint = { path: "/documents", router };
 
 export { documentEndpoint };
