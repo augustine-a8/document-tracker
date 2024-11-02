@@ -6,6 +6,7 @@ import {
   OneToOne,
   JoinColumn,
   OneToMany,
+  ManyToOne,
 } from "typeorm";
 import { User } from "./User";
 import { CustodyHistory } from "./CustodyHistory";
@@ -37,9 +38,9 @@ export class Document extends BaseEntity {
   type: string;
 
   @Column({ type: "uuid", name: "current_holder_id" })
-  currentHolderId: string | null;
+  currentHolderId: string;
 
-  @OneToOne(() => User)
+  @ManyToOne(() => User, (user) => user.currentlyHolding)
   @JoinColumn({ name: "current_holder_id" })
   currentHolder: User;
 
