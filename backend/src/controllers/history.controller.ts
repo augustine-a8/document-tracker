@@ -7,20 +7,20 @@ const CustodyHistoryRepository = AppDataSource.getRepository(CustodyHistory);
 const DocumentRepository = AppDataSource.getRepository(Document);
 
 async function getCustodyHistoryForDocument(req: Request, res: Response) {
-  const { id: document_id } = req.params;
+  const { id: documentId } = req.params;
 
-  const document = await DocumentRepository.findOneBy({ document_id });
+  const document = await DocumentRepository.findOneBy({ documentId });
 
   if (!document) {
     res.status(404).json({
       message: "Document with id provided not found",
-      custodyHistory: null,
     });
     return;
   }
 
-  const custodyHistory = await CustodyHistoryRepository.findBy({
-    document_id: document_id,
+  const custodyHistory = await CustodyHistoryRepository.find({
+    where: { documentId: document.documentId },
+    relations: { sender: true, receiver: true },
   });
   res.status(200).json({
     message: "Document history retrieved",
@@ -29,7 +29,9 @@ async function getCustodyHistoryForDocument(req: Request, res: Response) {
 }
 
 async function getAllCustodyHistory(req: Request, res: Response) {
-  const allHistory = await CustodyHistory.find({});
+  const allHistory = await CustodyHistory.find({
+    relations: { document: true, sender: true, receiver: true },
+  });
 
   res.status(200).json({
     message: "All history retrieved",
