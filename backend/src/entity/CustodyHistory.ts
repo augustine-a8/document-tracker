@@ -11,9 +11,9 @@ import { Document } from "./Document";
 import { User } from "./User";
 
 @Entity({ name: "custody_history" })
-@Unique(["history_id", "document_id"])
-@Unique(["history_id", "previous_holder_id"])
-@Unique(["history_id", "current_holder_id"])
+// @Unique(["history_id", "document_id"])
+// @Unique(["history_id", "previous_holder_id"])
+// @Unique(["history_id", "current_holder_id"])
 export class CustodyHistory extends BaseEntity {
   @PrimaryColumn({ type: "uuid", name: "history_id" })
   historyId: string;
@@ -45,6 +45,6 @@ export class CustodyHistory extends BaseEntity {
   @Column({ type: "timestamp", name: "sent_timestamp" })
   sentTimestamp: Date;
 
-  @Column({ type: "timestamp", name: "acknowledged_timestamp" })
-  acknowledgedTimestamp: Date;
+  @Column({ type: "timestamp", name: "acknowledged_timestamp", nullable: true })
+  acknowledgedTimestamp: Date | null;
 }
