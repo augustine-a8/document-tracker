@@ -39,7 +39,7 @@ async function login(req: Request, res: Response) {
     return;
   }
 
-  const token = generateToken(user.user_id, user.email, user.role);
+  const token = generateToken(user.userId, user.email, user.role);
   res.status(200).json({
     message: "Login successful",
     token,
@@ -77,7 +77,7 @@ async function register(req: Request, res: Response) {
   }
 
   const user = new User();
-  user.user_id = uuidv4();
+  user.userId = uuidv4();
   user.name = name;
   user.email = email;
   user.password = hashPassword(password);
@@ -85,7 +85,7 @@ async function register(req: Request, res: Response) {
 
   const savedUser = await UserRepository.save(user);
   const token = generateToken(
-    savedUser.user_id,
+    savedUser.userId,
     savedUser.email,
     savedUser.role
   );
