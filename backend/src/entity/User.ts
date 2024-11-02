@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryColumn, BaseEntity, OneToMany } from "typeorm";
 import { CustodyHistory } from "./CustodyHistory";
+import { Document } from "./Document";
 
 @Entity()
 export class User extends BaseEntity {
@@ -28,4 +29,7 @@ export class User extends BaseEntity {
 
   @OneToMany(() => CustodyHistory, (custodyHistory) => custodyHistory.receiver)
   custodyHistoriesAsReceiver: CustodyHistory[];
+
+  @OneToMany(() => Document, (document) => document.currentHolder)
+  currentlyHolding: Document[];
 }
