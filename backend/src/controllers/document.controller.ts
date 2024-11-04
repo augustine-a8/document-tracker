@@ -4,10 +4,14 @@ import { v4 as uuidv4 } from "uuid";
 import { AppDataSource } from "../data-source";
 import { Document, User, CustodyHistory } from "../entity";
 import { AuthRequest } from "../@types/authRequest";
+import { SocketService } from "../services/SocketService";
+import { NotificationQueue } from "../entity/NotificationQueue";
 
 const DocumentRepository = AppDataSource.getRepository(Document);
 const UserRepository = AppDataSource.getRepository(User);
 const CustodyHistoryRepository = AppDataSource.getRepository(CustodyHistory);
+const NotificationQueueRepository =
+  AppDataSource.getRepository(NotificationQueue);
 
 async function getAllDocuments(req: Request, res: Response) {
   const allDocuments = await DocumentRepository.find({});
@@ -170,6 +174,8 @@ async function sendDocument(req: AuthRequest, res: Response) {
     return;
   }
 
+  const sender = await UserRepository.findOne({ where: { userId: senderId } });
+
   const history = new CustodyHistory();
   history.historyId = uuidv4();
   history.documentId = documentId;
@@ -187,60 +193,41 @@ async function sendDocument(req: AuthRequest, res: Response) {
     },
   });
 
+  document.currentHolderId = null;
+  const savedDocument = await DocumentRepository.save(document);
+
   res.status(200).json({
     message: "Document sent successfully",
+    document: savedDocument,
     history: newHistory,
   });
-}
 
-// TODO: Ackowlege document route kinda messed up
-async function acknowledgeDocument(req: AuthRequest, res: Response) {
-  const { historyId } = req.body;
-  if (!historyId) {
-    res.status(400).json({
-      message: "Document history for transaction should be provided",
-    });
-    return;
-  }
+  const notification = new NotificationQueue();
+  notification.notificationId = uuidv4();
+  notification.history = savedHistory;
+  notification.historyId = savedHistory.historyId;
+  notification.acknowledged = false;
+  notification.senderId = senderId;
+  notification.receiverId = receiverId;
+  notification.documentId = documentId;
 
-  const history = await CustodyHistory.findOneBy({ historyId });
-  if (!history) {
-    res.status(404).json({
-      message: "Document history for transaction not found",
-    });
-    return;
-  }
-
-  const receiverId = history.receiverId;
-  const userId = req.user.userId;
-  if (userId !== receiverId) {
-    res.status(403).json({
-      message:
-        "Action not allowed. Only intended receiver can acknowledge receiving document",
-    });
-    return;
-  }
-
-  const documentId = history.documentId;
-  const document = await DocumentRepository.findOneBy({ documentId });
-
-  if (!document) {
-    res.status(404).json({
-      message: "Document used in transaction not found",
-    });
-    return;
-  }
-
-  history.acknowledgedTimestamp = new Date();
-  document.currentHolderId = receiverId;
-
-  const savedHistory = await CustodyHistoryRepository.save(history);
-  await DocumentRepository.save(document);
-
-  res.status(200).json({
-    message: "Acknowledged receiving document",
-    history: savedHistory,
+  const n = await NotificationQueueRepository.save(notification);
+  const newNotification = await NotificationQueueRepository.findOne({
+    where: { notificationId: n.notificationId },
+    relations: {
+      sender: true,
+      receiver: true,
+      document: true,
+      history: true,
+    },
   });
+
+  console.log("Sending socket event to client");
+  if (SocketService.getInstance().isUserOnline(receiverId)) {
+    SocketService.getInstance().emitToUser(receiverId, "acknowledge_document", {
+      ...newNotification,
+    });
+  }
 }
 
 export {
@@ -249,5 +236,4 @@ export {
   addDocument,
   // updateDocument,
   sendDocument,
-  acknowledgeDocument,
 };
