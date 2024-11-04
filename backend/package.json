@@ -8,7 +8,8 @@
     "dev": "ts-node -r dotenv/config src/index.ts",
     "compile": "tsc",
     "serve": "node dist/index.js",
-    "start": "npm run compile && npm run serve"
+    "start": "npm run compile && npm run serve",
+    "watch": "nodemon"
   },
   "keywords": [],
   "author": "",
@@ -33,6 +34,7 @@
     "morgan": "^1.10.0",
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.2",
+    "socket.io": "^4.8.1",
     "typeorm": "^0.3.20",
     "uuid": "^11.0.2"
   }
