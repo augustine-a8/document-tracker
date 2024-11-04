@@ -6,7 +6,6 @@ import {
   addDocument,
   getDocumentById,
   sendDocument,
-  acknowledgeDocument,
 } from "../controllers/document.controller";
 import { asyncHandler } from "../lib/async-wrapper";
 import { checkAuthentication } from "../middleware/check-auth";
