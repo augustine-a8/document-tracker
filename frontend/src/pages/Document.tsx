@@ -8,17 +8,21 @@ import { addDocumentApi, getAllDocumentsApi } from "../api/document.api";
 import { useAuth } from "../hooks/useAuth";
 import { IDocument } from "../@types/document";
 import { IError } from "../@types/error";
+import EmptyComponent from "../components/EmptyComponent";
+import LoadingComponent from "../components/LoadingComponent";
 
 export default function Document() {
   const [showModal, setShowModal] = useState<boolean>(false);
-  const navigate = useNavigate();
   const { token } = useAuth();
   const [allDocuments, setAllDocuments] = useState<IDocument[]>([]);
+  const [allDocumentsLoading, setAllDocumentsLoading] = useState<boolean>(true);
   const [error, setError] = useState<IError | null>(null);
+
+  const [addNewDocumentLoading, setAddNewDocumentLoading] =
+    useState<boolean>(false);
   const [addNewDocumentError, setAddNewDocumentError] = useState<IError | null>(
     null
   );
-  const [currentPage, setCurrentPage] = useState<number>(1);
 
   useEffect(() => {
     const setDocumentScrolling = () => {
@@ -38,6 +42,7 @@ export default function Document() {
 
   useEffect(() => {
     const fetchAllDocuments = () => {
+      setAllDocumentsLoading(true);
       getAllDocumentsApi(token)
         .then((res) => {
           if (res.status === 200) {
@@ -46,6 +51,9 @@ export default function Document() {
         })
         .catch((err) => {
           setError(err);
+        })
+        .finally(() => {
+          setAllDocumentsLoading(false);
         });
     };
 
@@ -56,28 +64,76 @@ export default function Document() {
     setShowModal((prev) => !prev);
   };
 
-  const goToDocument = (documentId: string) => {
-    navigate(`/documents/${documentId}`);
-  };
-
   const addNewDocument = (
     serialNumber: string,
     title: string,
     description: string,
     type: string
   ) => {
+    setAddNewDocumentLoading(true);
+    setAddNewDocumentError(null);
     addDocumentApi(token, { serialNumber, title, description, type })
       .then((res) => {
         if (res.status === 200) {
-          // TODO: Do something to show new document has been added
           toggleModal();
           setAllDocuments((prev) => [...prev, res.data.newDocument]);
+        } else {
+          setAddNewDocumentError(res as IError);
         }
       })
       .catch((err) => {
         setAddNewDocumentError(err);
+      })
+      .finally(() => {
+        setAddNewDocumentLoading(false);
       });
   };
+
+  return (
+    <>
+      <main>
+        <div className="document-head">
+          <div>
+            <button className="btn btn-solid" onClick={toggleModal}>
+              Add Document
+            </button>
+          </div>
+          <div className="document-search-box">
+            <input type="text" placeholder="Search for document..." />
+            <CiSearch />
+          </div>
+        </div>
+        {allDocumentsLoading ? (
+          <div className="grid place-items-center h-[calc(100%-58px)]">
+            <LoadingComponent isLoading={allDocumentsLoading} />
+          </div>
+        ) : allDocuments.length > 0 ? (
+          <AllDocumentsTable allDocuments={allDocuments} />
+        ) : !allDocumentsLoading ? (
+          <div className="grid place-items-center h-full">
+            <EmptyComponent message="No documents here yet" />
+          </div>
+        ) : undefined}
+      </main>
+      {showModal ? (
+        <AddNewDocument
+          toggleModal={toggleModal}
+          addNewDocument={addNewDocument}
+          addNewDocumentLoading={addNewDocumentLoading}
+          addNewDocumentError={addNewDocumentError}
+        />
+      ) : undefined}
+    </>
+  );
+}
+
+interface AllDocumentsTableProps {
+  allDocuments: IDocument[];
+}
+
+function AllDocumentsTable({ allDocuments }: AllDocumentsTableProps) {
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const navigate = useNavigate();
 
   const maxItemsPerPage = 10;
   let allItems = allDocuments.length;
@@ -101,73 +157,57 @@ export default function Document() {
     }
   };
 
+  const goToDocument = (documentId: string) => {
+    navigate(`/documents/${documentId}`);
+  };
+
   return (
     <>
-      <main>
-        <div className="document-head">
-          <div>
-            <button className="btn btn-solid" onClick={toggleModal}>
-              Add Document
-            </button>
-          </div>
-          <div className="document-search-box">
-            <input type="text" placeholder="Search for document..." />
-            <CiSearch />
-          </div>
+      <div className="pagination">
+        <p>
+          {startIndex + 1} - {stopIndex > allItems ? allItems : stopIndex} of{" "}
+          {allItems}
+        </p>
+        <div className="page-prev" role="button" onClick={goToPreviousPage}>
+          <MdChevronLeft color="#463f3a" />
         </div>
-        <div className="pagination">
-          <p>
-            {startIndex + 1} - {stopIndex > allItems ? allItems : stopIndex} of{" "}
-            {allItems}
-          </p>
-          <div className="page-prev" role="button" onClick={goToPreviousPage}>
-            <MdChevronLeft color="#463f3a" />
-          </div>
-          <div className="page-next" role="button" onClick={goToNextPage}>
-            <MdChevronRight color="#463f3a" />
-          </div>
+        <div className="page-next" role="button" onClick={goToNextPage}>
+          <MdChevronRight color="#463f3a" />
         </div>
-        <table className="document-table">
-          <thead>
-            <tr>
-              <th>
-                # <div></div>
-              </th>
-              <th>Serial Number</th>
-              <th>Title</th>
-              <th>Description</th>
-              <th>Type</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentPageItems.map((item, idx) => {
-              const { serialNumber, documentId, type, title, description } =
-                item;
-              return (
-                <tr
-                  className="document-tr"
-                  onClick={() => {
-                    goToDocument(documentId);
-                  }}
-                  key={documentId}
-                >
-                  <td>{idx + startIndex + 1}</td>
-                  <td>{serialNumber}</td>
-                  <td>{title}</td>
-                  <td>{description}</td>
-                  <td>{type}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </main>
-      {showModal ? (
-        <AddNewDocument
-          toggleModal={toggleModal}
-          addNewDocument={addNewDocument}
-        />
-      ) : undefined}
+      </div>
+      <table className="document-table">
+        <thead>
+          <tr>
+            <th>
+              # <div></div>
+            </th>
+            <th>Serial Number</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          {currentPageItems.map((item, idx) => {
+            const { serialNumber, documentId, type, title, description } = item;
+            return (
+              <tr
+                className="document-tr"
+                onClick={() => {
+                  goToDocument(documentId);
+                }}
+                key={documentId}
+              >
+                <td>{idx + startIndex + 1}</td>
+                <td>{serialNumber}</td>
+                <td>{title}</td>
+                <td>{description}</td>
+                <td>{type}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </>
   );
 }

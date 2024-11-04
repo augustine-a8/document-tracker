@@ -6,11 +6,12 @@ import App from "./App.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import Document from "./pages/Document.tsx";
 import DocumentWithHistory from "./pages/DocumentWithHistory.tsx";
-import CustodyHistory from "./pages/CustodyHistory.tsx";
+import PendingAcknowledgements from "./pages/PendingAcknowledgements.tsx";
 import Login from "./pages/Login.tsx";
 import Register from "./pages/Register.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import { AuthProvider } from "./context/AuthContext.tsx";
+import { NotificationModalProvider } from "./context/NotificationContext.tsx";
 
 const router = createBrowserRouter([
   {
@@ -42,8 +43,8 @@ const router = createBrowserRouter([
         element: <DocumentWithHistory />,
       },
       {
-        path: "history",
-        element: <CustodyHistory />,
+        path: "pending-acknowledgements",
+        element: <PendingAcknowledgements />,
       },
     ],
   },
@@ -52,7 +53,9 @@ const router = createBrowserRouter([
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <AuthProvider>
-      <RouterProvider router={router} />
+      <NotificationModalProvider>
+        <RouterProvider router={router} />
+      </NotificationModalProvider>
     </AuthProvider>
   </StrictMode>
 );

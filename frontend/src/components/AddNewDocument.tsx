@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { MdOutlineClose } from "react-icons/md";
+import { IError } from "../@types/error";
+import { ClipLoader } from "react-spinners";
+import ErrorComponent from "./ErrorComponent";
 
 interface ModalProps {
   toggleModal?: () => void;
@@ -9,11 +12,15 @@ interface ModalProps {
     description: string,
     type: string
   ) => void;
+  addNewDocumentLoading: boolean;
+  addNewDocumentError: IError | null;
 }
 
 export default function AddNewDocument({
   toggleModal,
   addNewDocument,
+  addNewDocumentLoading,
+  addNewDocumentError,
 }: ModalProps) {
   const [serialNumber, setSerialNumber] = useState<string>("");
   const [title, setTitle] = useState<string>("");
@@ -40,6 +47,11 @@ export default function AddNewDocument({
           </div>
         </div>
 
+        {addNewDocumentError !== null ? (
+          <div className="mx-4 mt-2">
+            <ErrorComponent error={addNewDocumentError} />
+          </div>
+        ) : undefined}
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -90,11 +102,19 @@ export default function AddNewDocument({
               }}
             />
           </div>
-          <div className="w-[100%] flex justify-end border-t border-t-[#e5e5e5] py-2 px-4 mt-4">
-            <button className="submit-btn" type="submit">
-              Submit
-            </button>
-          </div>
+          {addNewDocumentLoading ? (
+            <>
+              <div className="w-[100%] grid place-items-center border-t border-t-[#e5e5e5] py-2 px-4 mt-4">
+                <ClipLoader />
+              </div>
+            </>
+          ) : (
+            <div className="w-[100%] flex justify-end border-t border-t-[#e5e5e5] py-2 px-4 mt-4">
+              <button className="submit-btn" type="submit">
+                Submit
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </div>

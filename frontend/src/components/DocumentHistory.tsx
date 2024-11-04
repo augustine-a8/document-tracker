@@ -32,10 +32,10 @@ export default function DocumentHistory({ history }: DocumentHistoryProps) {
               <td>{idx + 1}</td>
               <td>{sender.name}</td>
               <td>{receiver.name}</td>
-              <td>{new Date(sentTimestamp).toDateString()}</td>
+              <td>{new Date(sentTimestamp).toUTCString()}</td>
               <td>
                 {acknowledgedTimestamp
-                  ? new Date(acknowledgedTimestamp).toDateString()
+                  ? new Date(acknowledgedTimestamp).toUTCString()
                   : "n/a"}
               </td>
               <td>{comment}</td>

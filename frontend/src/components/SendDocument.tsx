@@ -5,13 +5,22 @@ import { CiSearch } from "react-icons/ci";
 import { IUser } from "../@types/user";
 import { searchUserApi } from "../api/user.api";
 import { IError } from "../@types/error";
+import LoadingComponent from "./LoadingComponent";
+import ErrorComponent from "./ErrorComponent";
 
 interface ModalProps {
   toggleModal?: () => void;
   onSend: (receiverId: string, comment: string) => void;
+  sendDocumentLoading: boolean;
+  sendDocumentError: IError | null;
 }
 
-export default function SendDocument({ toggleModal, onSend }: ModalProps) {
+export default function SendDocument({
+  toggleModal,
+  onSend,
+  sendDocumentLoading,
+  sendDocumentError,
+}: ModalProps) {
   const [search, setSearch] = useState<string>("");
   const [searchError, setSearchError] = useState<IError | null>(null);
   const [users, setUsers] = useState<IUser[]>([]);
@@ -20,7 +29,7 @@ export default function SendDocument({ toggleModal, onSend }: ModalProps) {
 
   const { token } = useAuth();
 
-  const handleSearchUser = () => {
+  const handleSearchUser = (search: string) => {
     searchUserApi(token, search)
       .then((res) => {
         if (res.status === 200) {
@@ -55,7 +64,6 @@ export default function SendDocument({ toggleModal, onSend }: ModalProps) {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            handleSearchUser();
           }}
         >
           <div className="mx-4 pl-2 h-8 flex flex-row items-center search-user overflow-hidden">
@@ -66,6 +74,7 @@ export default function SendDocument({ toggleModal, onSend }: ModalProps) {
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
+                handleSearchUser(e.target.value);
               }}
             />
             <button
@@ -130,20 +139,31 @@ export default function SendDocument({ toggleModal, onSend }: ModalProps) {
             placeholder="Add a comment..."
           ></textarea>
         </div>
-        <div className="w-[100%] border-t border-t-[#e5e5e5] py-2 px-4 mt-2 flex justify-end">
-          <button
-            className="submit-btn"
-            disabled={chosenUser === null}
-            aria-disabled={chosenUser === null}
-            onClick={() => {
-              if (chosenUser) {
-                onSend(chosenUser.userId, comment);
-              }
-            }}
-          >
-            Send
-          </button>
-        </div>
+        {sendDocumentError !== null ? (
+          <div className="mx-4 my-2">
+            <ErrorComponent error={sendDocumentError} />
+          </div>
+        ) : undefined}
+        {sendDocumentLoading ? (
+          <div className="w-[100%] border-t border-t-[#e5e5e5] py-2 px-4 mt-2 grid place-items-center">
+            <LoadingComponent isLoading={sendDocumentLoading} />
+          </div>
+        ) : (
+          <div className="w-[100%] border-t border-t-[#e5e5e5] py-2 px-4 mt-2 flex justify-end">
+            <button
+              className="submit-btn"
+              disabled={chosenUser === null}
+              aria-disabled={chosenUser === null}
+              onClick={() => {
+                if (chosenUser) {
+                  onSend(chosenUser.userId, comment);
+                }
+              }}
+            >
+              Send
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,17 +1,26 @@
 import { NavLink } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import { FaUser, FaRegBell } from "react-icons/fa";
-import { MdLogout } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
 
 import { useAuth } from "../hooks/useAuth";
+import { Config } from "../api/config";
+import { useNotificationModal } from "../hooks/useNotificationModal";
+import { getUserNotificationsApi } from "../api/notifications.api";
+import { IError } from "../@types/error";
+import Notifications from "./Notifications";
+import Avatar from "./Avatar";
 
 export default function Header() {
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [showNotificationDropdown, setShowNotificationDropdown] =
+    useState<boolean>(false);
+  const [error, setError] = useState<IError | null>(null);
+  const avatarDropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-
-  const { logout } = useAuth();
+  const { logout, token } = useAuth();
+  const { setNotificationData, toggleNotificationModal, setAllNotifications } =
+    useNotificationModal();
 
   const handleLogout = () => {
     logout();
@@ -22,11 +31,14 @@ export default function Header() {
     setShowDropdown((prev) => !prev);
   };
 
+  const toggleNotificationDropdown = () => {
+    setShowNotificationDropdown((prev) => !prev);
+  };
+
   const handleClickOutside = (event: MouseEvent) => {
-    // Check if the click is outside the dropdown
     if (
-      dropdownRef.current &&
-      !dropdownRef.current.contains(event.target as Node)
+      avatarDropdownRef.current &&
+      !avatarDropdownRef.current.contains(event.target as Node)
     ) {
       setShowDropdown(false);
     }
@@ -34,18 +46,61 @@ export default function Header() {
 
   useEffect(() => {
     if (showDropdown) {
-      // Add event listener when the dropdown is open
       document.addEventListener("mousedown", handleClickOutside);
     } else {
-      // Clean up event listener when the dropdown closes
       document.removeEventListener("mousedown", handleClickOutside);
     }
 
-    // Clean up event listener on component unmount
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showDropdown]);
+
+  useEffect(() => {
+    const connectToSocketServer = () => {
+      const auth = {
+        token,
+      };
+
+      const socket = io(Config.ServerEndpoint, { auth, withCredentials: true });
+
+      socket.on("connect", () => {
+        console.log("Connect to socket server with id: ", socket.id);
+      });
+
+      socket.on("connect_error", (error) => {
+        console.log("Socket Connection Error: ", error.message);
+      });
+
+      socket.on("acknowledge_document", (data) => {
+        console.log("Received event from socket server");
+        if (data) {
+          console.log({ data });
+          setNotificationData(data);
+          toggleNotificationModal();
+        }
+      });
+    };
+
+    connectToSocketServer();
+  }, []);
+
+  useEffect(() => {
+    const fetchAllNotifications = () => {
+      getUserNotificationsApi(token)
+        .then((res) => {
+          const notifications = res.data.notifications;
+          setAllNotifications(notifications);
+        })
+        .catch((err) => {
+          setError(err.data);
+          console.log({ err });
+        });
+    };
+
+    fetchAllNotifications();
+  }, []);
+
   return (
     <header className="relative">
       <nav>
@@ -58,37 +113,22 @@ export default function Header() {
             <NavLink to="/documents" className="nav-link">
               Documents
             </NavLink>
-            <NavLink to="/history" className="nav-link">
-              Custody History
+            <NavLink to="/pending-acknowledgements" className="nav-link">
+              Pending Acknowledgements
             </NavLink>
           </div>
         </div>
       </nav>
-      <div className="notifications">
-        <FaRegBell size={22} />
-        <div className="absolute top-[-25%] right-[-25%] w-4 h-4 bg-[#d00000] grid place-items-center rounded-full">
-          <small className="text-xs text-white">6</small>
-        </div>
-      </div>
-      <div className="avatar-container" role="button" onClick={toggleDropdown}>
-        <div className="avatar"></div>
-      </div>
-      {showDropdown ? (
-        <div className="dropdown" ref={dropdownRef}>
-          <div>
-            <div className="w-[18px]">
-              <FaUser size={12} color="#808080" />
-            </div>
-            <p>My Profile</p>
-          </div>
-          <div role="button" onClick={handleLogout}>
-            <div className="w-[18px]">
-              <MdLogout color="#808080" />
-            </div>
-            <p>Logout</p>
-          </div>
-        </div>
-      ) : undefined}
+      <Notifications
+        showNotificationDropdown={showNotificationDropdown}
+        toggleNotificationDropdown={toggleNotificationDropdown}
+      />
+      <Avatar
+        avatarDropdownRef={avatarDropdownRef}
+        showAvatarDropdown={showDropdown}
+        toggleAvatarDropdown={toggleDropdown}
+        handleLogout={handleLogout}
+      />
     </header>
   );
 }

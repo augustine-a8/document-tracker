@@ -1,4 +1,4 @@
 export interface IError {
   status: number;
-  message: string;
+  data: { message: string };
 }
