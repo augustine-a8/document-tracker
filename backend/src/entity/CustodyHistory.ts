@@ -6,9 +6,11 @@ import {
   ManyToOne,
   JoinColumn,
   Unique,
+  OneToMany,
 } from "typeorm";
 import { Document } from "./Document";
 import { User } from "./User";
+import { NotificationQueue } from "./NotificationQueue";
 
 @Entity({ name: "custody_history" })
 // @Unique(["history_id", "document_id"])
@@ -47,4 +49,7 @@ export class CustodyHistory extends BaseEntity {
 
   @Column({ type: "timestamp", name: "acknowledged_timestamp", nullable: true })
   acknowledgedTimestamp: Date | null;
+
+  @OneToMany(() => NotificationQueue, (notification) => notification.history)
+  notificationQueues: NotificationQueue[];
 }

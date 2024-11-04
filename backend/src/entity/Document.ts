@@ -37,8 +37,8 @@ export class Document extends BaseEntity {
   })
   type: string;
 
-  @Column({ type: "uuid", name: "current_holder_id" })
-  currentHolderId: string;
+  @Column({ type: "uuid", name: "current_holder_id", nullable: true })
+  currentHolderId: string | null;
 
   @ManyToOne(() => User, (user) => user.currentlyHolding)
   @JoinColumn({ name: "current_holder_id" })
