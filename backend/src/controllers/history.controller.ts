@@ -1,13 +1,12 @@
 import { Request, Response } from "express";
 
 import { AppDataSource } from "../data-source";
-import { CustodyHistory, Document, NotificationQueue, User } from "../entity";
+import { CustodyHistory, Document, Notification, User } from "../entity";
 import { AuthRequest } from "../@types/authRequest";
 
 const CustodyHistoryRepository = AppDataSource.getRepository(CustodyHistory);
 const DocumentRepository = AppDataSource.getRepository(Document);
-const NotificationQueueRepository =
-  AppDataSource.getRepository(NotificationQueue);
+const NotificationRepository = AppDataSource.getRepository(Notification);
 const UserRepository = AppDataSource.getRepository(User);
 
 async function getCustodyHistoryForDocument(req: Request, res: Response) {
@@ -26,6 +25,9 @@ async function getCustodyHistoryForDocument(req: Request, res: Response) {
     where: { documentId: document.documentId },
     relations: { sender: true, receiver: true },
   });
+  custodyHistory.sort(
+    (a, b) => b.sentTimestamp.getTime() - a.sentTimestamp.getTime()
+  );
   res.status(200).json({
     message: "Document history retrieved",
     custodyHistory,
@@ -48,7 +50,7 @@ async function acknowledgeDocument(req: AuthRequest, res: Response) {
   const { notificationId } = req.body;
   const userId = req.user.userId;
 
-  const notification = await NotificationQueueRepository.findOneBy({
+  const notification = await NotificationRepository.findOneBy({
     notificationId,
   });
   if (!notification) {
@@ -88,7 +90,7 @@ async function acknowledgeDocument(req: AuthRequest, res: Response) {
   const savedDocument = await DocumentRepository.save(document);
 
   notification.acknowledged = true;
-  await NotificationQueueRepository.save(notification);
+  await NotificationRepository.save(notification);
 
   history.acknowledgedTimestamp = new Date();
   await CustodyHistoryRepository.save(history);
@@ -107,7 +109,7 @@ async function acknowledgeMultipleDocuments(req: AuthRequest, res: Response) {
     async (acknowledgement: { historyId: string; notificationId: string }) => {
       const { historyId, notificationId } = acknowledgement;
 
-      const notification = await NotificationQueueRepository.findOneBy({
+      const notification = await NotificationRepository.findOneBy({
         notificationId,
       });
       if (!notification) {
@@ -148,7 +150,7 @@ async function acknowledgeMultipleDocuments(req: AuthRequest, res: Response) {
       const savedDocument = await DocumentRepository.save(document);
 
       notification.acknowledged = true;
-      await NotificationQueueRepository.save(notification);
+      await NotificationRepository.save(notification);
 
       history.acknowledgedTimestamp = new Date();
       await CustodyHistoryRepository.save(history);
