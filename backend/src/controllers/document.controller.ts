@@ -5,13 +5,12 @@ import { AppDataSource } from "../data-source";
 import { Document, User, CustodyHistory } from "../entity";
 import { AuthRequest } from "../@types/authRequest";
 import { SocketService } from "../services/SocketService";
-import { NotificationQueue } from "../entity/NotificationQueue";
+import { Notification } from "../entity/Notification";
 
 const DocumentRepository = AppDataSource.getRepository(Document);
 const UserRepository = AppDataSource.getRepository(User);
 const CustodyHistoryRepository = AppDataSource.getRepository(CustodyHistory);
-const NotificationQueueRepository =
-  AppDataSource.getRepository(NotificationQueue);
+const NotificationRepository = AppDataSource.getRepository(Notification);
 
 async function getAllDocuments(req: Request, res: Response) {
   const allDocuments = await DocumentRepository.find({});
@@ -193,7 +192,7 @@ async function sendDocument(req: AuthRequest, res: Response) {
     },
   });
 
-  document.currentHolderId = null;
+  document.currentHolderId = receiverId;
   const savedDocument = await DocumentRepository.save(document);
 
   res.status(200).json({
@@ -202,7 +201,7 @@ async function sendDocument(req: AuthRequest, res: Response) {
     history: newHistory,
   });
 
-  const notification = new NotificationQueue();
+  const notification = new Notification();
   notification.notificationId = uuidv4();
   notification.history = savedHistory;
   notification.historyId = savedHistory.historyId;
@@ -211,8 +210,8 @@ async function sendDocument(req: AuthRequest, res: Response) {
   notification.receiverId = receiverId;
   notification.documentId = documentId;
 
-  const n = await NotificationQueueRepository.save(notification);
-  const newNotification = await NotificationQueueRepository.findOne({
+  const n = await NotificationRepository.save(notification);
+  const newNotification = await NotificationRepository.findOne({
     where: { notificationId: n.notificationId },
     relations: {
       sender: true,
@@ -230,10 +229,131 @@ async function sendDocument(req: AuthRequest, res: Response) {
   }
 }
 
+async function returnDocument(req: AuthRequest, res: Response) {
+  const { id: documentId } = req.params;
+  const { comment, historyId, notificationId } = req.body;
+
+  if (!historyId) {
+    res.status(400).json({
+      message: "History id must be provided",
+    });
+    return;
+  }
+
+  if (!notificationId) {
+    res.status(400).json({
+      message: "Notification id must be provided",
+    });
+    return;
+  }
+
+  if (!comment) {
+    res.status(400).json({
+      message: "Please provide a reason/purpose for returning the document",
+    });
+    return;
+  }
+
+  const document = await DocumentRepository.findOneBy({ documentId });
+
+  if (!document) {
+    res.status(404).json({
+      message: "Document with id provided not found",
+    });
+    return;
+  }
+
+  const history = await CustodyHistoryRepository.findOne({
+    where: { historyId },
+  });
+  if (!history) {
+    res.status(404).json({
+      message: "No history for history id provided",
+    });
+    return;
+  }
+
+  const notification = await NotificationRepository.findOne({
+    where: { notificationId },
+  });
+  if (!notification) {
+    res.status(404).json({
+      message: "No notification for notification id provided",
+    });
+    return;
+  }
+
+  const userId = req.user.userId;
+  if (userId !== history.receiverId) {
+    res.status(403).json({
+      message: "Action not allowed. Only document receiver can return document",
+    });
+    return;
+  }
+
+  notification.acknowledged = true;
+  await NotificationRepository.save(notification);
+
+  history.acknowledgedTimestamp = new Date();
+  await CustodyHistoryRepository.save(history);
+
+  // Create new history and notification for sending back
+
+  const newHistory = new CustodyHistory();
+  newHistory.historyId = uuidv4();
+  newHistory.documentId = documentId;
+  newHistory.senderId = userId;
+  newHistory.sentTimestamp = new Date();
+  newHistory.acknowledgedTimestamp = new Date();
+  newHistory.comment = comment;
+  newHistory.receiverId = history.senderId;
+  const savedNewHistory = await CustodyHistoryRepository.save(newHistory);
+
+  const returnNotification = new Notification();
+  returnNotification.notificationId = uuidv4();
+  returnNotification.history = savedNewHistory;
+  returnNotification.historyId = savedNewHistory.historyId;
+  returnNotification.acknowledged = true;
+  returnNotification.senderId = userId;
+  returnNotification.receiverId = history.senderId;
+  returnNotification.documentId = documentId;
+  const s = await NotificationRepository.save(returnNotification);
+
+  document.currentHolderId = history.senderId;
+  await DocumentRepository.save(document);
+
+  const n = await NotificationRepository.findOne({
+    where: { notificationId: s.notificationId },
+    relations: {
+      history: true,
+      document: true,
+      sender: true,
+      receiver: true,
+    },
+  });
+
+  // Send notification to document original sender
+
+  if (SocketService.getInstance().isUserOnline(history.senderId)) {
+    SocketService.getInstance().emitToUser(
+      history.senderId,
+      "return_document",
+      {
+        ...n,
+      }
+    );
+  }
+
+  res.status(200).json({
+    message: "Document Returned to sender",
+  });
+}
+
 export {
   getAllDocuments,
   getDocumentById,
   addDocument,
   // updateDocument,
   sendDocument,
+  returnDocument,
 };

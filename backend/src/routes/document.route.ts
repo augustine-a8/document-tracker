@@ -6,6 +6,7 @@ import {
   addDocument,
   getDocumentById,
   sendDocument,
+  returnDocument,
 } from "../controllers/document.controller";
 import { asyncHandler } from "../lib/async-wrapper";
 import { checkAuthentication } from "../middleware/check-auth";
@@ -23,6 +24,7 @@ router.get(
 router.post("/", checkAuthentication, asyncHandler(addDocument));
 // router.patch("/:id", checkAuthentication, asyncHandler(updateDocument));
 router.post("/:id/send", checkAuthentication, asyncHandler(sendDocument));
+router.post("/:id/return", checkAuthentication, asyncHandler(returnDocument));
 
 const documentEndpoint: Endpoint = { path: "/documents", router };
 
