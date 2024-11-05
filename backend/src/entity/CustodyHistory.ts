@@ -10,7 +10,7 @@ import {
 } from "typeorm";
 import { Document } from "./Document";
 import { User } from "./User";
-import { NotificationQueue } from "./NotificationQueue";
+import { Notification } from "./Notification";
 
 @Entity({ name: "custody_history" })
 // @Unique(["history_id", "document_id"])
@@ -50,6 +50,6 @@ export class CustodyHistory extends BaseEntity {
   @Column({ type: "timestamp", name: "acknowledged_timestamp", nullable: true })
   acknowledgedTimestamp: Date | null;
 
-  @OneToMany(() => NotificationQueue, (notification) => notification.history)
-  notificationQueues: NotificationQueue[];
+  @OneToMany(() => Notification, (notification) => notification.history)
+  Notifications: Notification[];
 }

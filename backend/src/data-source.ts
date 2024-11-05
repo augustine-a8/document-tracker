@@ -2,7 +2,7 @@ import { DataSource } from "typeorm";
 
 import { User, Document, CustodyHistory } from "./entity";
 import { Config } from "./config";
-import { NotificationQueue } from "./entity/NotificationQueue";
+import { Notification } from "./entity/Notification";
 
 const {
   database_host,
@@ -20,8 +20,8 @@ export const AppDataSource = new DataSource({
   password: database_password,
   database: database_name,
   synchronize: true,
-  logging: true,
-  entities: [User, Document, CustodyHistory, NotificationQueue],
+  logging: false,
+  entities: [User, Document, CustodyHistory, Notification],
   subscribers: [],
   migrations: [],
 });

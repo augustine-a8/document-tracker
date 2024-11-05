@@ -1,16 +1,15 @@
 import { Response } from "express";
 
 import { AuthRequest } from "../@types/authRequest";
-import { NotificationQueue } from "../entity/NotificationQueue";
+import { Notification } from "../entity/Notification";
 import { AppDataSource } from "../data-source";
 
-const NotificationQueueRepository =
-  AppDataSource.getRepository(NotificationQueue);
+const NotificationRepository = AppDataSource.getRepository(Notification);
 
 async function getUserNotifications(req: AuthRequest, res: Response) {
   const userId = req.user.userId;
 
-  const notifications = await NotificationQueueRepository.find({
+  const notifications = await NotificationRepository.find({
     where: { receiverId: userId, acknowledged: false },
     relations: {
       sender: true,

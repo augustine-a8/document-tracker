@@ -11,7 +11,7 @@ import { User } from "./User";
 import { Document } from "./Document";
 
 @Entity({ name: "notification_queue" })
-export class NotificationQueue extends BaseEntity {
+export class Notification extends BaseEntity {
   @PrimaryColumn({ type: "uuid", name: "notification_id" })
   notificationId: string;
 
