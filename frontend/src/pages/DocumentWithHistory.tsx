@@ -14,7 +14,6 @@ import { BsFillSendFill } from "react-icons/bs";
 import SendDocument from "../components/SendDocument";
 import { getMyAccountApi } from "../api/user.api";
 import { IUser } from "../@types/user";
-import Tag from "../components/Tag";
 import { IError } from "../@types/error";
 import { getHistoryForDocumentApi } from "../api/history.api";
 import { IHistory } from "../@types/history";
@@ -117,7 +116,7 @@ export default function DocumentWithHistory() {
       });
   };
 
-  const maxItemsPerPage = 10;
+  const maxItemsPerPage = 6;
   let allItems = history.length;
   let itemsPerPage = allItems < maxItemsPerPage ? allItems : maxItemsPerPage;
   let startIndex = (currentPage - 1) * itemsPerPage;
@@ -153,49 +152,35 @@ export default function DocumentWithHistory() {
         ) : (
           <>
             {document ? (
-              <div className="w-[100%] flex flex-row">
-                <div className="dwh-card-group">
-                  <div className="dwh-card">
-                    <p>Serial Number</p>
-                    <p>{document.serialNumber}</p>
+              <div className="w-full grid grid-cols-2">
+                <div className="mx-4">
+                  <p className="lb-regular-italic text-gray-500">
+                    # {document.serialNumber}
+                  </p>
+                  <p className="lb-bold text-3xl">{document.title}</p>
+                  <div className="flex flex-row items-center gap-4">
+                    <p className="lb-regular text-xl">
+                      {document.currentHolder?.name}
+                    </p>
+                    {document.currentHolder?.userId === me?.userId ? (
+                      <div className="border bg-[#023e8a] text-white w-[10%] h-[22px] rounded-md grid place-items-center">
+                        <p className="text-sm">me</p>
+                      </div>
+                    ) : undefined}
                   </div>
-                  <div className="dwh-card">
-                    <p>Title</p>
-                    <p>{document.title}</p>
-                  </div>
-
-                  <div className="dwh-card">
-                    <p>Current holder</p>
-                    {document.currentHolderId === me?.userId ? (
-                      <Tag title="me" />
-                    ) : (
-                      <p>{document.currentHolder?.name}</p>
-                    )}
-                  </div>
-                  <div className="dwh-card">
-                    <p>Type</p>
-                    {document.type}
-                  </div>
-                  <div className="dwh-card">
-                    <p>Description</p>
-                    <p>{document.description}</p>
-                  </div>
+                  <p className="lb-regular text-xl">{document.type}</p>
+                  <p className="text-gray-700">{document.description}</p>
                 </div>
-                {document.currentHolderId == me?.userId ? (
-                  <div className="flex flex-1 flex-col mr-4">
-                    <div>
-                      <button
-                        className="btn btn-outline send-btn"
-                        onClick={toggleModal}
-                      >
-                        <div className="flex flex-row gap-2 items-center">
-                          <BsFillSendFill size={14} />
-                          <p>Send</p>
-                        </div>
-                      </button>
-                    </div>
-                  </div>
-                ) : undefined}
+                <div className="grid place-items-center">
+                  {document.currentHolder?.userId === me?.userId ? (
+                    <button className="send-btn" onClick={toggleModal}>
+                      <div className="flex flex-row items-center gap-2">
+                        <BsFillSendFill />
+                        <p>Send</p>
+                      </div>
+                    </button>
+                  ) : undefined}
+                </div>
               </div>
             ) : undefined}
             {history.length > 0 ? (

@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+.lb-regular {
+  font-family: "Libre Baskerville", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.lb-bold {
+  font-family: "Libre Baskerville", serif;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.lb-regular-italic {
+  font-family: "Libre Baskerville", serif;
+  font-weight: 400;
+  font-style: italic;
+}
+
 button:hover {
   cursor: pointer;
   box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
@@ -31,6 +49,12 @@ button:hover {
 .send-btn {
   color: #007200;
   border-color: #007200;
+  border: 1px solid #007200;
+  border-radius: 8px;
+  width: 50%;
+  height: 25%;
+  display: grid;
+  place-items: center;
 }
 
 .send-btn:hover {
@@ -588,4 +612,8 @@ table td::after {
 
 .clear-user:hover {
   box-shadow: none;
+}
+
+.return-btn {
+  background-color: #d00000;
 }

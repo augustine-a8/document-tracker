@@ -19,3 +19,10 @@ export interface IAcknowledgement {
   historyId: string;
   notificationId: string;
 }
+
+export type NotificationType = "acknowledge" | "return";
+
+export interface INotificationQueue {
+  type: NotificationType;
+  notification: INotification;
+}

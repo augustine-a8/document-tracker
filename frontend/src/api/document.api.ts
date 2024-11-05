@@ -87,9 +87,34 @@ function sendDocumentApi(
   return res;
 }
 
+function returnDocumentApi(
+  token: string,
+  documentId: string,
+  historyId: string,
+  notificationId: string,
+  comment: string
+) {
+  const res = axios
+    .post(
+      `${BaseEndpoint}/documents/${documentId}/return`,
+      { historyId, notificationId, comment },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    )
+    .then((res) => {
+      return { status: res.status, data: res.data };
+    })
+    .catch((err: AxiosError) => {
+      return { status: err.response?.status, data: err.response?.data };
+    });
+  return res;
+}
+
 export {
   getAllDocumentsApi,
   addDocumentApi,
   getDocumentByIdApi,
   sendDocumentApi,
+  returnDocumentApi,
 };

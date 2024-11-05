@@ -1,14 +1,25 @@
 import { createContext, PropsWithChildren, useState } from "react";
-import { IAcknowledgement, INotification } from "../@types/notification";
+import {
+  IAcknowledgement,
+  INotification,
+  INotificationQueue,
+  NotificationType,
+} from "../@types/notification";
 
 interface NotificationContextType {
   showNotificationModal: boolean;
   toggleNotificationModal: () => void;
-  notificationData: INotification | null;
-  setNotificationData: (n: INotification) => void;
   allNotifications: INotification[];
   setAllNotifications: (n: INotification[]) => void;
+  addNotification: (n: INotification) => void;
   removeNotifications: (acks: IAcknowledgement[]) => void;
+  enqueueNotification: (
+    type: NotificationType,
+    notification: INotification
+  ) => void;
+  dequeueNotification: () => INotificationQueue | undefined;
+  notificationQueueLength: number;
+  notificationQueue: INotificationQueue[];
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(
@@ -18,22 +29,33 @@ const NotificationContext = createContext<NotificationContextType | undefined>(
 function NotificationModalProvider({ children }: PropsWithChildren) {
   const [showNotificationModal, setShowNotificationModal] =
     useState<boolean>(false);
-  const [notificationData, _notificationData] = useState<INotification | null>(
-    null
-  );
+  const [notificationQueue, setNotificationQueue] = useState<
+    INotificationQueue[]
+  >([]);
   const [allNotifications, _allNotifications] = useState<INotification[]>([]);
+
+  const enqueueNotification = (
+    type: NotificationType,
+    notification: INotification
+  ) => {
+    const newNotification: INotificationQueue = { type, notification };
+    setNotificationQueue((prev) => [...prev, newNotification]);
+  };
+
+  const dequeueNotification = () => {
+    return notificationQueue.shift();
+  };
 
   const toggleNotificationModal = () => {
     setShowNotificationModal((prev) => !prev);
   };
 
-  const setNotificationData = (notificationData: INotification) => {
-    _notificationData(notificationData);
-    _allNotifications((prev) => [...prev, notificationData]);
-  };
-
   const setAllNotifications = (notifications: INotification[]) => {
     _allNotifications(notifications);
+  };
+
+  const addNotification = (notification: INotification) => {
+    _allNotifications((prev) => [...prev, notification]);
   };
 
   const removeNotifications = (acks: IAcknowledgement[]) => {
@@ -53,12 +75,15 @@ function NotificationModalProvider({ children }: PropsWithChildren) {
     <NotificationContext.Provider
       value={{
         showNotificationModal,
-        toggleNotificationModal,
-        notificationData,
-        setNotificationData,
+        notificationQueueLength: notificationQueue.length,
         allNotifications,
+        notificationQueue,
+        toggleNotificationModal,
+        addNotification,
         setAllNotifications,
         removeNotifications,
+        enqueueNotification,
+        dequeueNotification,
       }}
     >
       {children}

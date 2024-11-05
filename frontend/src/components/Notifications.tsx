@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { FaCircle, FaRegBell } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { useNotificationModal } from "../hooks/useNotificationModal";
+import { useNotification } from "../hooks/useNotification";
 
 interface NotificationsProps {
   showNotificationDropdown: boolean;
@@ -12,7 +12,7 @@ export default function Notifications({
   showNotificationDropdown,
   toggleNotificationDropdown,
 }: NotificationsProps) {
-  const { toggleNotificationModal, allNotifications } = useNotificationModal();
+  const { allNotifications } = useNotification();
   const notificationDropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -52,7 +52,7 @@ export default function Notifications({
 
   const goToPendingAcknowledgements = () => {
     navigate("/pending-acknowledgements");
-    toggleNotificationModal();
+    // toggleNotificationModal();
   };
 
   return (

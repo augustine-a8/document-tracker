@@ -1,11 +1,11 @@
 import { Outlet } from "react-router-dom";
 
 import Header from "./components/Header";
-import { useNotificationModal } from "./hooks/useNotificationModal";
+import { useNotification } from "./hooks/useNotification";
 import AcknowledgeDocumentModal from "./components/AcknowledgeDocumentModal";
 
 function App() {
-  const { showNotificationModal } = useNotificationModal();
+  const { showNotificationModal } = useNotification();
   return (
     <>
       <Header />

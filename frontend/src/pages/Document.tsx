@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import { CiSearch } from "react-icons/ci";
-import { MdChevronLeft, MdChevronRight } from "react-icons/md";
-import { useNavigate } from "react-router-dom";
 
 import AddNewDocument from "../components/AddNewDocument";
 import { addDocumentApi, getAllDocumentsApi } from "../api/document.api";
@@ -10,13 +8,16 @@ import { IDocument } from "../@types/document";
 import { IError } from "../@types/error";
 import EmptyComponent from "../components/EmptyComponent";
 import LoadingComponent from "../components/LoadingComponent";
+import AllDocumentsTable from "../components/AllDocumentsTable";
 
 export default function Document() {
   const [showModal, setShowModal] = useState<boolean>(false);
   const { token } = useAuth();
   const [allDocuments, setAllDocuments] = useState<IDocument[]>([]);
+  const [filteredDocuments, setFilteredDocuments] = useState<IDocument[]>([]);
   const [allDocumentsLoading, setAllDocumentsLoading] = useState<boolean>(true);
   const [error, setError] = useState<IError | null>(null);
+  const [search, setSearch] = useState<string>("");
 
   const [addNewDocumentLoading, setAddNewDocumentLoading] =
     useState<boolean>(false);
@@ -47,6 +48,7 @@ export default function Document() {
         .then((res) => {
           if (res.status === 200) {
             setAllDocuments(res.data.allDocuments);
+            setFilteredDocuments(res.data.allDocuments);
           }
         })
         .catch((err) => {
@@ -99,7 +101,21 @@ export default function Document() {
             </button>
           </div>
           <div className="document-search-box">
-            <input type="text" placeholder="Search for document..." />
+            <input
+              type="text"
+              placeholder="Search for document..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setFilteredDocuments(
+                  allDocuments.filter((document) =>
+                    document.title
+                      .toLowerCase()
+                      .includes(e.target.value.toLowerCase())
+                  )
+                );
+              }}
+            />
             <CiSearch />
           </div>
         </div>
@@ -108,7 +124,7 @@ export default function Document() {
             <LoadingComponent isLoading={allDocumentsLoading} />
           </div>
         ) : allDocuments.length > 0 ? (
-          <AllDocumentsTable allDocuments={allDocuments} />
+          <AllDocumentsTable allDocuments={filteredDocuments} />
         ) : !allDocumentsLoading ? (
           <div className="grid place-items-center h-full">
             <EmptyComponent message="No documents here yet" />
@@ -123,91 +139,6 @@ export default function Document() {
           addNewDocumentError={addNewDocumentError}
         />
       ) : undefined}
-    </>
-  );
-}
-
-interface AllDocumentsTableProps {
-  allDocuments: IDocument[];
-}
-
-function AllDocumentsTable({ allDocuments }: AllDocumentsTableProps) {
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const navigate = useNavigate();
-
-  const maxItemsPerPage = 10;
-  let allItems = allDocuments.length;
-  let itemsPerPage = allItems < maxItemsPerPage ? allItems : maxItemsPerPage;
-  let startIndex = (currentPage - 1) * itemsPerPage;
-  let stopIndex = currentPage * itemsPerPage;
-  let currentPageItems = allDocuments.slice(
-    startIndex,
-    stopIndex > allItems ? allItems : stopIndex
-  );
-
-  const goToPreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    }
-  };
-
-  const goToNextPage = () => {
-    if (stopIndex < allItems) {
-      setCurrentPage((prev) => prev + 1);
-    }
-  };
-
-  const goToDocument = (documentId: string) => {
-    navigate(`/documents/${documentId}`);
-  };
-
-  return (
-    <>
-      <div className="pagination">
-        <p>
-          {startIndex + 1} - {stopIndex > allItems ? allItems : stopIndex} of{" "}
-          {allItems}
-        </p>
-        <div className="page-prev" role="button" onClick={goToPreviousPage}>
-          <MdChevronLeft color="#463f3a" />
-        </div>
-        <div className="page-next" role="button" onClick={goToNextPage}>
-          <MdChevronRight color="#463f3a" />
-        </div>
-      </div>
-      <table className="document-table">
-        <thead>
-          <tr>
-            <th>
-              # <div></div>
-            </th>
-            <th>Serial Number</th>
-            <th>Title</th>
-            <th>Description</th>
-            <th>Type</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentPageItems.map((item, idx) => {
-            const { serialNumber, documentId, type, title, description } = item;
-            return (
-              <tr
-                className="document-tr"
-                onClick={() => {
-                  goToDocument(documentId);
-                }}
-                key={documentId}
-              >
-                <td>{idx + startIndex + 1}</td>
-                <td>{serialNumber}</td>
-                <td>{title}</td>
-                <td>{description}</td>
-                <td>{type}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
     </>
   );
 }

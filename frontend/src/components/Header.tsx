@@ -5,7 +5,7 @@ import { io } from "socket.io-client";
 
 import { useAuth } from "../hooks/useAuth";
 import { Config } from "../api/config";
-import { useNotificationModal } from "../hooks/useNotificationModal";
+import { useNotification } from "../hooks/useNotification";
 import { getUserNotificationsApi } from "../api/notifications.api";
 import { IError } from "../@types/error";
 import Notifications from "./Notifications";
@@ -19,8 +19,12 @@ export default function Header() {
   const avatarDropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { logout, token } = useAuth();
-  const { setNotificationData, toggleNotificationModal, setAllNotifications } =
-    useNotificationModal();
+  const {
+    toggleNotificationModal,
+    setAllNotifications,
+    enqueueNotification,
+    addNotification,
+  } = useNotification();
 
   const handleLogout = () => {
     logout();
@@ -72,11 +76,23 @@ export default function Header() {
         console.log("Socket Connection Error: ", error.message);
       });
 
+      // Add event queuing for the case when client receives multiple events from socket server
+
       socket.on("acknowledge_document", (data) => {
-        console.log("Received event from socket server");
+        console.log("Received acknowledge_document event from socket server");
+        if (data) {
+          enqueueNotification("acknowledge", data);
+          addNotification(data);
+          toggleNotificationModal();
+        }
+      });
+
+      socket.on("return_document", (data) => {
+        console.log("Received return_document event from socket server");
         if (data) {
           console.log({ data });
-          setNotificationData(data);
+          enqueueNotification("return", data);
+          addNotification(data);
           toggleNotificationModal();
         }
       });

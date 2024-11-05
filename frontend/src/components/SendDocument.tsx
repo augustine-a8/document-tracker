@@ -29,7 +29,7 @@ export default function SendDocument({
 
   const { token } = useAuth();
 
-  const handleSearchUser = (search: string) => {
+  const handleSearchUser: (s: string) => void = (search: string) => {
     searchUserApi(token, search)
       .then((res) => {
         if (res.status === 200) {
