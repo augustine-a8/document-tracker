@@ -56,15 +56,28 @@ export default function Notifications({
   };
 
   return (
-    <div className="notifications">
-      <FaRegBell size={22} role="button" onClick={toggleNotificationDropdown} />
+    <div className="relative h-[inherit]">
+      <button
+        onClick={toggleNotificationDropdown}
+        className="text-gray-600 active:text-black h-[inherit] relative"
+      >
+        <FaRegBell size={20} />
+        {allNotifications.length > 0 ? (
+          <div className="absolute top-[calc(50%-16px)] left-[50%] w-4 h-4 bg-[#d00000] grid place-items-center rounded-full">
+            <p className="text-[10px] text-white">{allNotifications.length}</p>
+          </div>
+        ) : undefined}
+      </button>
       {showNotificationDropdown ? (
-        <div className="notifications-dropdown" ref={notificationDropdownRef}>
+        <div
+          className="absolute bg-white z-50 top-[80%] right-[10%] w-[300px] rounded-md dropdown-shadow flex flex-col max-h-[40vh] overflow-y-auto"
+          ref={notificationDropdownRef}
+        >
           {allNotifications.length > 0 ? (
             allNotifications.map((notification) => {
               return (
                 <div
-                  className="px-4 py-2 flex flex-row items-center gap-4 notification"
+                  className="py-2 px-4 flex flex-row items-center gap-4 hover:cursor-pointer hover:bg-gray-100"
                   role="link"
                   onClick={goToPendingAcknowledgements}
                 >
@@ -78,19 +91,10 @@ export default function Notifications({
               );
             })
           ) : (
-            <>
-              <div className="px-4 py-2 flex flex-row items-center gap-4 hover:cursor-auto hover:bg-white">
-                <p className="text-sm">No new notifications</p>
-              </div>
-            </>
+            <div className="px-4 py-2">
+              <p className="text-sm">No new notifications</p>
+            </div>
           )}
-        </div>
-      ) : undefined}
-      {allNotifications.length > 0 ? (
-        <div className="absolute top-[-25%] right-[-25%] w-4 h-4 bg-[#d00000] grid place-items-center rounded-full">
-          <small className="text-xs text-white">
-            {allNotifications.length}
-          </small>
         </div>
       ) : undefined}
     </div>

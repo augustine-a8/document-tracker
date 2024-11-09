@@ -6,15 +6,15 @@ interface DocumentHistoryProps {
 
 export default function DocumentHistory({ history }: DocumentHistoryProps) {
   return (
-    <table className="document-table">
-      <thead>
+    <table className="border-collapse text-sm w-full">
+      <thead className="bg-[#023e8a] text-white">
         <tr>
-          <th>#</th>
-          <th>Sender</th>
-          <th>Receiver</th>
-          <th>Sent At</th>
-          <th>Acknowledged At</th>
-          <th>Comment</th>
+          <th className="font-normal text-left p-2">#</th>
+          <th className="font-normal text-left p-2">Sender</th>
+          <th className="font-normal text-left p-2">Receiver</th>
+          <th className="font-normal text-left p-2">Sent At</th>
+          <th className="font-normal text-left p-2">Acknowledged At</th>
+          <th className="font-normal text-left p-2">Comment</th>
         </tr>
       </thead>
       <tbody>
@@ -29,16 +29,18 @@ export default function DocumentHistory({ history }: DocumentHistoryProps) {
           } = item;
           return (
             <tr key={historyId}>
-              <td>{idx + 1}</td>
-              <td>{sender.name}</td>
-              <td>{receiver.name}</td>
-              <td>{new Date(sentTimestamp).toUTCString()}</td>
-              <td>
+              <td className="font-normal text-left p-2">{idx + 1}</td>
+              <td className="font-normal text-left p-2">{sender.name}</td>
+              <td className="font-normal text-left p-2">{receiver.name}</td>
+              <td className="font-normal text-left p-2">
+                {new Date(sentTimestamp).toUTCString()}
+              </td>
+              <td className="font-normal text-left p-2">
                 {acknowledgedTimestamp
                   ? new Date(acknowledgedTimestamp).toUTCString()
                   : "n/a"}
               </td>
-              <td>{comment}</td>
+              <td className="font-normal text-left p-2">{comment}</td>
             </tr>
           );
         })}

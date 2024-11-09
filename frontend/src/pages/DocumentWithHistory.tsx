@@ -140,10 +140,12 @@ export default function DocumentWithHistory() {
 
   return (
     <>
-      <main>
-        <div className="dwh-header" role="button" onClick={goBack}>
-          <MdOutlineArrowBackIosNew color="#023e8a" />
-          <p>Back</p>
+      <main className="flex flex-col">
+        <div className="w-full px-4 mt-2" onClick={goBack}>
+          <button className="w-fit flex flex-row gap-2 items-center text-sm text-[#023e8a] hover:underline">
+            <MdOutlineArrowBackIosNew />
+            <p>Back</p>
+          </button>
         </div>
         {historyLoading ? (
           <div className="h-[calc(100%-62px)] grid place-items-center">
@@ -152,31 +154,42 @@ export default function DocumentWithHistory() {
         ) : (
           <>
             {document ? (
-              <div className="w-full grid grid-cols-2">
-                <div className="mx-4">
-                  <p className="lb-regular-italic text-gray-500">
-                    # {document.serialNumber}
-                  </p>
-                  <p className="lb-bold text-3xl">{document.title}</p>
-                  <div className="flex flex-row items-center gap-4">
-                    <p className="lb-regular text-xl">
-                      {document.currentHolder?.name}
-                    </p>
-                    {document.currentHolder?.userId === me?.userId ? (
-                      <div className="border bg-[#023e8a] text-white w-[10%] h-[22px] rounded-md grid place-items-center">
-                        <p className="text-sm">me</p>
-                      </div>
-                    ) : undefined}
+              <div className="w-full grid grid-cols-[2fr_1fr] pt-4 px-4">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="col-span-2">
+                    <p className="lb-bold text-xl">{document.title}</p>
                   </div>
-                  <p className="lb-regular text-xl">{document.type}</p>
-                  <p className="text-gray-700">{document.description}</p>
+                  <div>
+                    <p className="text-xs text-gray-400">Serial Number</p>
+                    <p className="lb-regular"># {document.serialNumber}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-gray-400">Document Type</p>
+                    <p className="lb-regular">{document.type}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400">Current Holder</p>
+                    <p className="lb-regular">{document.currentHolder?.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400">Creator</p>
+                    <p className="lb-regular">{document.creator?.name}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-xs text-gray-400">Description</p>
+                    <p className="lb-regular">{document.description}</p>
+                  </div>
                 </div>
                 <div className="grid place-items-center">
                   {document.currentHolder?.userId === me?.userId ? (
-                    <button className="send-btn" onClick={toggleModal}>
-                      <div className="flex flex-row items-center gap-2">
+                    <button
+                      className="border border-[#007200] rounded-md text-[#007200] w-[60%] h-8 lb-regular hover:bg-[#007200] hover:text-white ease-in-out duration-300"
+                      onClick={toggleModal}
+                    >
+                      <div className="flex flex-row items-center justify-center gap-2">
                         <BsFillSendFill />
-                        <p>Send</p>
+                        <p className="text-sm">Send</p>
                       </div>
                     </button>
                   ) : undefined}
@@ -185,30 +198,32 @@ export default function DocumentWithHistory() {
             ) : undefined}
             {history.length > 0 ? (
               <>
-                <div className="pagination">
-                  <p>
+                <div className="w-full px-4 flex flex-row items-center justify-end gap-2">
+                  <p className="text-sm text-gray-400">
                     {startIndex + 1} -{" "}
                     {stopIndex > allItems ? allItems : stopIndex} of {allItems}
                   </p>
                   <div
-                    className="page-prev"
+                    className="grid place-items-center w-8 h-8 rounded-full text-gray-500 hover:cursor-pointer hover:bg-[#ebebeb]"
                     role="button"
                     onClick={goToPreviousPage}
                   >
-                    <MdChevronLeft color="#463f3a" />
+                    <MdChevronLeft />
                   </div>
                   <div
-                    className="page-next"
+                    className="grid place-items-center w-8 h-8 rounded-full text-gray-500 hover:cursor-pointer hover:bg-[#ebebeb]"
                     role="button"
                     onClick={goToNextPage}
                   >
-                    <MdChevronRight color="#463f3a" />
+                    <MdChevronRight />
                   </div>
                 </div>
-                <DocumentHistory history={currentPageItems} />
+                <div className="w-fill px-4">
+                  <DocumentHistory history={currentPageItems} />
+                </div>
               </>
             ) : (
-              <div className="grid place-items-center h-auto">
+              <div className="flex flex-1 mx-4 items-center justify-center border rounded-md">
                 <EmptyComponent message="No transfer history for document" />
               </div>
             )}

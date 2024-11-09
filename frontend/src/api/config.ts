@@ -1,6 +1,6 @@
 const Config = {
-  BaseEndpoint: "http://localhost:8080/api",
-  ServerEndpoint: "http://localhost:8080",
+  BaseEndpoint: "http://localhost:9000/api",
+  ServerEndpoint: "http://localhost:9000",
 };
 
 export { Config };

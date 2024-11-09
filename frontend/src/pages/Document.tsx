@@ -79,6 +79,7 @@ export default function Document() {
         if (res.status === 200) {
           toggleModal();
           setAllDocuments((prev) => [...prev, res.data.newDocument]);
+          setFilteredDocuments((prev) => [...prev, res.data.newDocument]);
         } else {
           setAddNewDocumentError(res as IError);
         }
@@ -94,13 +95,16 @@ export default function Document() {
   return (
     <>
       <main>
-        <div className="document-head">
+        <div className="w-full flex flex-row items-center justify-between px-4 py-2 border-b">
           <div>
-            <button className="btn btn-solid" onClick={toggleModal}>
-              Add Document
+            <button
+              className="border border-[#023e8a] w-32 h-8 rounded-md text-[#023e8a] hover:bg-[#023e8a] hover:text-white ease-in-out duration-300"
+              onClick={toggleModal}
+            >
+              <p className="text-sm">Add Document</p>
             </button>
           </div>
-          <div className="document-search-box">
+          <div className="flex flex-row items-center border rounded-md px-2 text-gray-500 h-8 w-[25%]">
             <input
               type="text"
               placeholder="Search for document..."
@@ -108,13 +112,16 @@ export default function Document() {
               onChange={(e) => {
                 setSearch(e.target.value);
                 setFilteredDocuments(
-                  allDocuments.filter((document) =>
-                    document.title
-                      .toLowerCase()
-                      .includes(e.target.value.toLowerCase())
+                  allDocuments.filter(
+                    (document) =>
+                      document.title
+                        .toLowerCase()
+                        .includes(e.target.value.toLowerCase()) ||
+                      document.serialNumber.includes(e.target.value)
                   )
                 );
               }}
+              className="flex-1 outline-none border-none text-sm"
             />
             <CiSearch />
           </div>

@@ -42,51 +42,61 @@ export default function AllDocumentsTable({
 
   return (
     <>
-      <div className="pagination">
+      <div className="w-full flex flex-row items-center justify-end gap-2 text-xs text-gray-400 px-4 py-2">
         <p>
           {startIndex + 1} - {stopIndex > allItems ? allItems : stopIndex} of{" "}
           {allItems}
         </p>
-        <div className="page-prev" role="button" onClick={goToPreviousPage}>
+        <div
+          className="grid place-items-center w-8 h-8 rounded-full text-gray-500 hover:cursor-pointer hover:bg-[#ebebeb]"
+          role="button"
+          onClick={goToPreviousPage}
+        >
           <MdChevronLeft color="#463f3a" />
         </div>
-        <div className="page-next" role="button" onClick={goToNextPage}>
+        <div
+          className="grid place-items-center w-8 h-8 rounded-full text-gray-500 hover:cursor-pointer hover:bg-[#ebebeb]"
+          role="button"
+          onClick={goToNextPage}
+        >
           <MdChevronRight color="#463f3a" />
         </div>
       </div>
-      <table className="document-table">
-        <thead>
-          <tr>
-            <th>
-              # <div></div>
-            </th>
-            <th>Serial Number</th>
-            <th>Title</th>
-            <th>Description</th>
-            <th>Type</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentPageItems.map((item, idx) => {
-            const { serialNumber, documentId, type, title, description } = item;
-            return (
-              <tr
-                className="document-tr"
-                onClick={() => {
-                  goToDocument(documentId);
-                }}
-                key={documentId}
-              >
-                <td>{idx + startIndex + 1}</td>
-                <td>{serialNumber}</td>
-                <td>{title}</td>
-                <td>{description}</td>
-                <td>{type}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <div className="w-full px-4">
+        <table className="w-full border-collapse text-sm">
+          <thead className="bg-[#023e8a] text-white">
+            <tr>
+              <th className="font-normal text-left p-2">#</th>
+              <th className="font-normal text-left p-2">Serial Number</th>
+              <th className="font-normal text-left p-2">Title</th>
+              <th className="font-normal text-left p-2">Description</th>
+              <th className="font-normal text-left p-2">Type</th>
+            </tr>
+          </thead>
+          <tbody className="all-documents">
+            {currentPageItems.map((item, idx) => {
+              const { serialNumber, documentId, type, title, description } =
+                item;
+              return (
+                <tr
+                  onClick={() => {
+                    goToDocument(documentId);
+                  }}
+                  key={documentId}
+                >
+                  <td className="font-normal text-left p-2">
+                    {idx + startIndex + 1}
+                  </td>
+                  <td className="font-normal text-left p-2">{serialNumber}</td>
+                  <td className="font-normal text-left p-2">{title}</td>
+                  <td className="font-normal text-left p-2">{description}</td>
+                  <td className="font-normal text-left p-2">{type}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </>
   );
 }

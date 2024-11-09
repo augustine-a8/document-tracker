@@ -10,6 +10,8 @@ export interface IDocument {
   currentHolder: IUser | null;
   custodyHistories: IHistory[];
   description: string;
+  creatorId: string;
+  creator: IUser;
 }
 
 export interface INewDocument {

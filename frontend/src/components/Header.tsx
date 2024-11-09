@@ -118,33 +118,58 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="relative">
-      <nav>
-        <h1 className="logo">LOGO</h1>
-        <div className="h-[100%]">
-          <div className="h-[inherit]">
-            <NavLink to="/" className="nav-link">
-              Dashboard
-            </NavLink>
-            <NavLink to="/documents" className="nav-link">
-              Documents
-            </NavLink>
-            <NavLink to="/pending-acknowledgements" className="nav-link">
-              Pending Acknowledgements
-            </NavLink>
+    <>
+      <header className="w-full h-14 relative px-4 border-b flex flex-row items-center justify-between bg-white">
+        <nav className="flex flex-row items-center gap-4">
+          <h1 className="logo">LOGO</h1>
+          <div className="h-[100%]">
+            <div className="flex flex-row gap-2 items-center">
+              <NavLink
+                to="/"
+                className={({ isActive }) =>
+                  isActive
+                    ? "px-2 py-1 border border-[#edf2fb] rounded-md text-sm text-[#023e8a] bg-[#edf2fb]"
+                    : "px-2 py-1 text-sm rounded-md border border-transparent hover:border hover:border-gray-400 text-gray-600"
+                }
+              >
+                Dashboard
+              </NavLink>
+              <NavLink
+                to="/documents"
+                className={({ isActive }) =>
+                  isActive
+                    ? "px-2 py-1 border border-[#edf2fb] rounded-md text-sm text-[#023e8a] bg-[#edf2fb]"
+                    : "px-2 py-1 text-sm rounded-md border border-transparent hover:border hover:border-gray-400 text-gray-600"
+                }
+              >
+                Documents
+              </NavLink>
+              <NavLink
+                to="/pending-acknowledgements"
+                className={({ isActive }) =>
+                  isActive
+                    ? "px-2 py-1 border border-[#edf2fb] rounded-md text-sm text-[#023e8a] bg-[#edf2fb]"
+                    : "px-2 py-1 text-sm rounded-md border border-transparent hover:border hover:border-gray-400 text-gray-600"
+                }
+              >
+                Acknowledgements
+              </NavLink>
+            </div>
           </div>
+        </nav>
+        <div className="flex flex-row items-center gap-4 h-14">
+          <Notifications
+            showNotificationDropdown={showNotificationDropdown}
+            toggleNotificationDropdown={toggleNotificationDropdown}
+          />
+          <Avatar
+            avatarDropdownRef={avatarDropdownRef}
+            showAvatarDropdown={showDropdown}
+            toggleAvatarDropdown={toggleDropdown}
+            handleLogout={handleLogout}
+          />
         </div>
-      </nav>
-      <Notifications
-        showNotificationDropdown={showNotificationDropdown}
-        toggleNotificationDropdown={toggleNotificationDropdown}
-      />
-      <Avatar
-        avatarDropdownRef={avatarDropdownRef}
-        showAvatarDropdown={showDropdown}
-        toggleAvatarDropdown={toggleDropdown}
-        handleLogout={handleLogout}
-      />
-    </header>
+      </header>
+    </>
   );
 }
