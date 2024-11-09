@@ -12,8 +12,18 @@ const UserRepository = AppDataSource.getRepository(User);
 const CustodyHistoryRepository = AppDataSource.getRepository(CustodyHistory);
 const NotificationRepository = AppDataSource.getRepository(Notification);
 
-async function getAllDocuments(req: Request, res: Response) {
-  const allDocuments = await DocumentRepository.find({});
+async function getAllDocuments(req: AuthRequest, res: Response) {
+  const user = req.user;
+  if (!user.userId) {
+    res.status(403).json({
+      message: "Invalid token",
+    });
+    return;
+  }
+
+  const allDocuments = await DocumentRepository.find({
+    where: [{ creatorId: user.userId }, { currentHolderId: user.userId }],
+  });
 
   res.status(200).json({
     message: "Retrieved all documents",
@@ -25,7 +35,7 @@ async function getDocumentById(req: Request, res: Response) {
   const { id: documentId } = req.params;
   const document = await DocumentRepository.findOne({
     where: { documentId },
-    relations: { currentHolder: true, custodyHistories: true },
+    relations: { currentHolder: true, custodyHistories: true, creator: true },
   });
 
   if (!document) {
@@ -87,6 +97,7 @@ async function addDocument(req: AuthRequest, res: Response) {
   document.serialNumber = serialNumber;
   document.type = type;
   document.currentHolderId = user.userId;
+  document.creatorId = user.userId;
 
   const newDocument = await DocumentRepository.save(document);
 

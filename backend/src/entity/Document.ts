@@ -3,7 +3,6 @@ import {
   Column,
   Entity,
   BaseEntity,
-  OneToOne,
   JoinColumn,
   OneToMany,
   ManyToOne,
@@ -36,6 +35,13 @@ export class Document extends BaseEntity {
     default: "available",
   })
   type: string;
+
+  @Column({ type: "uuid", name: "creator_id" })
+  creatorId: string;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: "creator_id" })
+  creator: User;
 
   @Column({ type: "uuid", name: "current_holder_id" })
   currentHolderId: string;

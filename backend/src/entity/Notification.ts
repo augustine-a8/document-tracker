@@ -10,7 +10,7 @@ import { CustodyHistory } from "./CustodyHistory";
 import { User } from "./User";
 import { Document } from "./Document";
 
-@Entity({ name: "notification_queue" })
+@Entity({ name: "notification" })
 export class Notification extends BaseEntity {
   @PrimaryColumn({ type: "uuid", name: "notification_id" })
   notificationId: string;
