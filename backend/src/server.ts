@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+import cookieParser from "cookie-parser";
 
 import { createRoutes } from "./routes";
 import { errorHandler } from "./middleware/error-handling";
@@ -13,9 +14,9 @@ function createServer(): express.Express {
   const corsOptionsDelegate = function (req: express.Request, callback: any) {
     let corsOptions;
     if (whitelist.indexOf(req.header("Origin") as string) !== -1) {
-      corsOptions = { origin: true };
+      corsOptions = { origin: true, credentials: true };
     } else {
-      corsOptions = { origin: false };
+      corsOptions = { origin: false, credentials: true };
     }
     callback(null, corsOptions);
   };
@@ -24,6 +25,7 @@ function createServer(): express.Express {
   app.use(helmet());
   app.use(express.json());
   app.use(morgan("combined"));
+  app.use(cookieParser());
 
   app.use(errorHandler);
 

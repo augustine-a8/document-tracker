@@ -1,10 +1,13 @@
 import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
+import jwt from "jsonwebtoken";
 
 import { AppDataSource } from "../data-source";
 import { User } from "../entity";
 import { hashPassword, verifyPassword } from "../lib/password";
-import { generateToken } from "../lib/jwt";
+import { generateToken, generateRefreshToken } from "../lib/jwt";
+import { AuthRequest } from "../@types/authRequest";
+import { Config } from "../config";
 
 const UserRepository = AppDataSource.getRepository(User);
 
@@ -39,10 +42,24 @@ async function login(req: Request, res: Response) {
     return;
   }
 
-  const token = generateToken(user.userId, user.email, user.role);
+  const accessToken = generateToken(user.userId, user.email, user.role);
+  res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    maxAge: 120 * 60 * 1000, // expires in 2hr
+  });
+
+  const refreshToken = generateRefreshToken(user.userId, user.email, user.role);
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // expires in 7d
+  });
+
   res.status(200).json({
     message: "Login successful",
-    token,
   });
 }
 
@@ -84,16 +101,68 @@ async function register(req: Request, res: Response) {
   user.role = "user";
 
   const savedUser = await UserRepository.save(user);
-  const token = generateToken(
+  const accessToken = generateToken(
     savedUser.userId,
     savedUser.email,
     savedUser.role
   );
+  res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    maxAge: 120 * 60 * 1000, // expires in 2hr
+  });
+
+  const refreshToken = generateRefreshToken(
+    savedUser.userId,
+    savedUser.email,
+    savedUser.role
+  );
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // expires in 7d
+  });
 
   res.status(200).json({
     message: "Registration successful",
-    token,
   });
 }
 
-export { login, register };
+async function logout(req: AuthRequest, res: Response) {
+  res.clearCookie("accessToken");
+  res.clearCookie("refreshToken");
+
+  req.user = null;
+
+  res.status(200).json({
+    message: "Logout successful",
+  });
+}
+
+async function refreshToken(req: Request, res: Response) {
+  const refreshToken = req.cookies.refreshToken;
+
+  if (!refreshToken) {
+    res.status(401).json({ message: "Refresh token missing" });
+    return;
+  }
+
+  jwt.verify(refreshToken, Config.refreshTokenSecret, (err: any, user: any) => {
+    if (err) return res.status(403).json({ message: "Invalid refresh token" });
+
+    const newAccessToken = generateToken(user.userId, user.email, user.role);
+
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 120 * 60 * 1000,
+    });
+
+    res.json({ message: "Access token refreshed" });
+  });
+}
+
+export { login, register, logout, refreshToken };

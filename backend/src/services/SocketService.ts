@@ -1,7 +1,16 @@
 import { Socket, Server } from "socket.io";
 import jwt from "jsonwebtoken";
+import cookieParser from "cookie-parser";
 
 import { Config } from "../config";
+
+const getTokenFromCookie = (cookieString: string) => {
+  const cookies = cookieString.split("; "); // Split into individual cookies
+  const tokenCookie = cookies.find((cookie) =>
+    cookie.startsWith("accessToken=")
+  );
+  return tokenCookie ? tokenCookie.split("=")[1] : null; // Extract token value if exists
+};
 
 class SocketService {
   private static instance: SocketService;
@@ -17,18 +26,27 @@ class SocketService {
 
   private initializeMiddleware() {
     this.io.use((socket, next) => {
-      const token = socket.handshake.auth.token;
+      const cookie = socket.request.headers.cookie;
+      if (!cookie) {
+        return next(new Error("Authentication Error"));
+      }
+      const token = getTokenFromCookie(cookie);
+
       if (!token) {
         return next(new Error("Authentication Error: Token is missing"));
       }
 
-      jwt.verify(token, Config.jwtSecret as string, (err: any, user: any) => {
-        if (err) {
-          return next(new Error("Authentication Error: Token is invalid"));
+      jwt.verify(
+        token,
+        Config.accessTokenSecret as string,
+        (err: any, user: any) => {
+          if (err) {
+            return next(new Error("Authentication Error: Token is invalid"));
+          }
+          socket.data.userId = user.userId;
+          next();
         }
-        socket.data.userId = user.userId;
-        next();
-      });
+      );
     });
   }
 
