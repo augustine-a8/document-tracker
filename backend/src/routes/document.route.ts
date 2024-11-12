@@ -10,16 +10,16 @@ import {
 } from "../controllers/document.controller";
 import { asyncHandler } from "../lib/async-wrapper";
 import { checkAuthentication } from "../middleware/check-auth";
-import { getCustodyHistoryForDocument } from "../controllers/history.controller";
+import { getTransactionsForDocument } from "../controllers/transaction.controller";
 
 const router = Router();
 
 router.get("/", checkAuthentication, asyncHandler(getAllDocuments));
 router.get("/:id", checkAuthentication, asyncHandler(getDocumentById));
 router.get(
-  "/:id/history",
+  "/:id/transaction",
   checkAuthentication,
-  asyncHandler(getCustodyHistoryForDocument)
+  asyncHandler(getTransactionsForDocument)
 );
 router.post("/", checkAuthentication, asyncHandler(addDocument));
 // router.patch("/:id", checkAuthentication, asyncHandler(updateDocument));

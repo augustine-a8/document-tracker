@@ -1,6 +1,4 @@
 import { Entity, Column, PrimaryColumn, BaseEntity, OneToMany } from "typeorm";
-import { CustodyHistory } from "./CustodyHistory";
-import { Document } from "./Document";
 
 @Entity()
 export class User extends BaseEntity {

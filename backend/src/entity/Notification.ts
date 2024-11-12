@@ -6,8 +6,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from "typeorm";
-import { CustodyHistory } from "./CustodyHistory";
-import { User } from "./User";
+import { Transaction } from "./Transaction";
 import { Document } from "./Document";
 
 @Entity({ name: "notification" })
@@ -15,12 +14,12 @@ export class Notification extends BaseEntity {
   @PrimaryColumn({ type: "uuid", name: "notification_id" })
   notificationId: string;
 
-  @Column({ type: "uuid", name: "history_id" })
-  historyId: string;
+  @Column({ type: "uuid", name: "transaction_id" })
+  transactionId: string;
 
-  @ManyToOne(() => CustodyHistory)
-  @JoinColumn({ name: "history_id" })
-  history: CustodyHistory;
+  @ManyToOne(() => Transaction)
+  @JoinColumn({ name: "transaction_id" })
+  transaction: Transaction;
 
   @Column({ type: "uuid", name: "document_id" })
   documentId: string;

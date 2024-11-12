@@ -8,7 +8,7 @@ import {
   ManyToOne,
 } from "typeorm";
 import { User } from "./User";
-import { CustodyHistory } from "./CustodyHistory";
+import { Transaction } from "./Transaction";
 
 @Entity({ name: "document" })
 export class Document extends BaseEntity {
@@ -50,6 +50,6 @@ export class Document extends BaseEntity {
   @JoinColumn({ name: "current_holder_id" })
   currentHolder: User;
 
-  @OneToMany(() => CustodyHistory, (custodyHistory) => custodyHistory.document)
-  custodyHistories: CustodyHistory[];
+  @OneToMany(() => Transaction, (transaction) => transaction.document)
+  transactions: Transaction[];
 }

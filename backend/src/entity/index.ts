@@ -1,4 +1,4 @@
 export * from "./User";
-export * from "./CustodyHistory";
+export * from "./Transaction";
 export * from "./Document";
 export * from "./Notification";

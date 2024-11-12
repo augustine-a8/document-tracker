@@ -12,10 +12,10 @@ import { Document } from "./Document";
 import { User } from "./User";
 import { Notification } from "./Notification";
 
-@Entity({ name: "custody_history" })
-export class CustodyHistory extends BaseEntity {
-  @PrimaryColumn({ type: "uuid", name: "history_id" })
-  historyId: string;
+@Entity({ name: "transaction" })
+export class Transaction extends BaseEntity {
+  @PrimaryColumn({ type: "uuid", name: "transaction_id" })
+  transactionId: string;
 
   @Column({ type: "uuid", name: "document_id" })
   documentId: string;

@@ -2,10 +2,10 @@ import { Response } from "express";
 
 import { AuthRequest } from "../@types/authRequest";
 import { AppDataSource } from "../data-source";
-import { CustodyHistory, Notification } from "../entity";
+import { Transaction, Notification } from "../entity";
 
 const NotificationRepository = AppDataSource.getRepository(Notification);
-const CustodyHistoryRepository = AppDataSource.getRepository(CustodyHistory);
+const TransactionRepository = AppDataSource.getRepository(Transaction);
 
 async function getUserNotifications(req: AuthRequest, res: Response) {
   const userId = req.user.userId;
@@ -14,24 +14,24 @@ async function getUserNotifications(req: AuthRequest, res: Response) {
     where: { acknowledged: false },
     relations: {
       document: true,
-      history: true,
+      transaction: true,
     },
   });
 
   const userNotifications = notifications.filter(
-    (notification) => notification.history.receiverId === userId
+    (notification) => notification.transaction.receiverId === userId
   );
 
   const fullUserNotifications = userNotifications.map(async (notification) => {
-    const history = await CustodyHistoryRepository.findOne({
-      where: { historyId: notification.historyId },
+    const transaction = await Transaction.findOne({
+      where: { transactionId: notification.transactionId },
       relations: { sender: true, receiver: true },
     });
 
     return {
       ...notification,
-      sender: history?.sender,
-      receiver: history?.receiver,
+      sender: transaction?.sender,
+      receiver: transaction?.receiver,
     };
   });
 

@@ -1,14 +1,14 @@
 import { Request, Response } from "express";
 
 import { AppDataSource } from "../data-source";
-import { CustodyHistory, Document, Notification, User } from "../entity";
+import { Transaction, Document, Notification, User } from "../entity";
 import { AuthRequest } from "../@types/authRequest";
 
-const CustodyHistoryRepository = AppDataSource.getRepository(CustodyHistory);
+const TransactionRepository = AppDataSource.getRepository(Transaction);
 const DocumentRepository = AppDataSource.getRepository(Document);
 const NotificationRepository = AppDataSource.getRepository(Notification);
 
-async function getCustodyHistoryForDocument(req: Request, res: Response) {
+async function getTransactionsForDocument(req: Request, res: Response) {
   const { id: documentId } = req.params;
 
   const document = await DocumentRepository.findOneBy({ documentId });
@@ -20,32 +20,33 @@ async function getCustodyHistoryForDocument(req: Request, res: Response) {
     return;
   }
 
-  const custodyHistory = await CustodyHistoryRepository.find({
+  const transactions = await TransactionRepository.find({
     where: { documentId: document.documentId },
     relations: { sender: true, receiver: true },
   });
-  custodyHistory.sort(
+  transactions.sort(
     (a, b) => b.sentTimestamp.getTime() - a.sentTimestamp.getTime()
   );
   res.status(200).json({
-    message: "Document history retrieved",
-    custodyHistory,
+    message: "Document transactions retrieved",
+    transactions,
   });
 }
 
-async function getAllCustodyHistory(req: Request, res: Response) {
-  const allHistory = await CustodyHistory.find({
+// TODO: get rid of this controller
+async function getAllTransactions(req: Request, res: Response) {
+  const allTransactions = await TransactionRepository.find({
     relations: { document: true, sender: true, receiver: true },
   });
 
   res.status(200).json({
-    message: "All history retrieved",
-    allHistory,
+    message: "All transactions retrieved",
+    allTransactions,
   });
 }
 
 async function acknowledgeDocument(req: AuthRequest, res: Response) {
-  const { id: historyId } = req.params;
+  const { id: transactionId } = req.params;
   const { notificationId } = req.body;
   const userId = req.user.userId;
 
@@ -59,15 +60,15 @@ async function acknowledgeDocument(req: AuthRequest, res: Response) {
     return;
   }
 
-  const history = await CustodyHistoryRepository.findOneBy({ historyId });
-  if (!history) {
+  const transaction = await TransactionRepository.findOneBy({ transactionId });
+  if (!transaction) {
     res.status(404).json({
-      message: "Invalid history id",
+      message: "Invalid transaction id",
     });
     return;
   }
 
-  if (history.receiverId !== userId) {
+  if (transaction.receiverId !== userId) {
     res.status(403).json({
       message: "Action not allowed. Only receiver of document can acknowledge",
     });
@@ -75,12 +76,12 @@ async function acknowledgeDocument(req: AuthRequest, res: Response) {
   }
 
   const document = await DocumentRepository.findOneBy({
-    documentId: history.documentId,
+    documentId: transaction.documentId,
   });
 
   if (!document) {
     res.status(404).json({
-      message: "Document associated with history does not exist",
+      message: "Document associated with transaction does not exist",
     });
     return;
   }
@@ -91,8 +92,8 @@ async function acknowledgeDocument(req: AuthRequest, res: Response) {
   notification.acknowledged = true;
   await NotificationRepository.save(notification);
 
-  history.acknowledgedTimestamp = new Date();
-  await CustodyHistoryRepository.save(history);
+  transaction.acknowledgedTimestamp = new Date();
+  await TransactionRepository.save(transaction);
 
   res.status(200).json({
     message: "Document acknowledged successfully",
@@ -105,8 +106,11 @@ async function acknowledgeMultipleDocuments(req: AuthRequest, res: Response) {
   const userId = req.user.userId;
 
   acknowledgements.forEach(
-    async (acknowledgement: { historyId: string; notificationId: string }) => {
-      const { historyId, notificationId } = acknowledgement;
+    async (acknowledgement: {
+      transactionId: string;
+      notificationId: string;
+    }) => {
+      const { transactionId, notificationId } = acknowledgement;
 
       const notification = await NotificationRepository.findOneBy({
         notificationId,
@@ -118,15 +122,17 @@ async function acknowledgeMultipleDocuments(req: AuthRequest, res: Response) {
         return;
       }
 
-      const history = await CustodyHistoryRepository.findOneBy({ historyId });
-      if (!history) {
+      const transaction = await TransactionRepository.findOneBy({
+        transactionId,
+      });
+      if (!transaction) {
         res.status(404).json({
-          message: "Invalid history id",
+          message: "Invalid transaction id",
         });
         return;
       }
 
-      if (history.receiverId !== userId) {
+      if (transaction.receiverId !== userId) {
         res.status(403).json({
           message:
             "Action not allowed. Only receiver of document can acknowledge",
@@ -135,24 +141,24 @@ async function acknowledgeMultipleDocuments(req: AuthRequest, res: Response) {
       }
 
       const document = await DocumentRepository.findOneBy({
-        documentId: history.documentId,
+        documentId: transaction.documentId,
       });
 
       if (!document) {
         res.status(404).json({
-          message: "Document associated with history does not exist",
+          message: "Document associated with transaction does not exist",
         });
         return;
       }
 
       document.currentHolderId = userId;
-      const savedDocument = await DocumentRepository.save(document);
+      await DocumentRepository.save(document);
 
       notification.acknowledged = true;
       await NotificationRepository.save(notification);
 
-      history.acknowledgedTimestamp = new Date();
-      await CustodyHistoryRepository.save(history);
+      transaction.acknowledgedTimestamp = new Date();
+      await TransactionRepository.save(transaction);
     }
   );
 
@@ -162,8 +168,8 @@ async function acknowledgeMultipleDocuments(req: AuthRequest, res: Response) {
 }
 
 export {
-  getCustodyHistoryForDocument,
-  getAllCustodyHistory,
+  getTransactionsForDocument,
+  getAllTransactions,
   acknowledgeDocument,
   acknowledgeMultipleDocuments,
 };

@@ -2,14 +2,14 @@ import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 
 import { AppDataSource } from "../data-source";
-import { Document, User, CustodyHistory } from "../entity";
+import { Document, User, Transaction } from "../entity";
 import { AuthRequest } from "../@types/authRequest";
 import { SocketService } from "../services/SocketService";
 import { Notification } from "../entity/Notification";
 
 const DocumentRepository = AppDataSource.getRepository(Document);
 const UserRepository = AppDataSource.getRepository(User);
-const CustodyHistoryRepository = AppDataSource.getRepository(CustodyHistory);
+const TransactionRepository = AppDataSource.getRepository(Transaction);
 const NotificationRepository = AppDataSource.getRepository(Notification);
 
 async function getAllDocuments(req: AuthRequest, res: Response) {
@@ -35,7 +35,7 @@ async function getDocumentById(req: Request, res: Response) {
   const { id: documentId } = req.params;
   const document = await DocumentRepository.findOne({
     where: { documentId },
-    relations: { currentHolder: true, custodyHistories: true, creator: true },
+    relations: { currentHolder: true, transactions: true, creator: true },
   });
 
   if (!document) {
@@ -184,17 +184,17 @@ async function sendDocument(req: AuthRequest, res: Response) {
     return;
   }
 
-  const history = new CustodyHistory();
-  history.historyId = uuidv4();
-  history.documentId = documentId;
-  history.senderId = senderId;
-  history.sentTimestamp = new Date();
-  history.comment = comment;
-  history.receiverId = receiverId;
+  const transaction = new Transaction();
+  transaction.transactionId = uuidv4();
+  transaction.documentId = documentId;
+  transaction.senderId = senderId;
+  transaction.sentTimestamp = new Date();
+  transaction.comment = comment;
+  transaction.receiverId = receiverId;
 
-  const savedHistory = await CustodyHistoryRepository.save(history);
-  const newHistory = await CustodyHistoryRepository.findOne({
-    where: { historyId: savedHistory.historyId },
+  const savedTransaction = await TransactionRepository.save(transaction);
+  const newTransaction = await TransactionRepository.findOne({
+    where: { transactionId: savedTransaction.transactionId },
     relations: {
       sender: true,
       receiver: true,
@@ -207,13 +207,12 @@ async function sendDocument(req: AuthRequest, res: Response) {
   res.status(200).json({
     message: "Document sent successfully",
     document: savedDocument,
-    history: newHistory,
+    transaction: newTransaction,
   });
 
   const notification = new Notification();
   notification.notificationId = uuidv4();
-  notification.history = savedHistory;
-  notification.historyId = savedHistory.historyId;
+  notification.transactionId = savedTransaction.transactionId;
   notification.acknowledged = false;
   notification.documentId = documentId;
 
@@ -222,7 +221,7 @@ async function sendDocument(req: AuthRequest, res: Response) {
     where: { notificationId: n.notificationId },
     relations: {
       document: true,
-      history: true,
+      transaction: true,
     },
   });
 
@@ -240,11 +239,11 @@ async function sendDocument(req: AuthRequest, res: Response) {
 
 async function returnDocument(req: AuthRequest, res: Response) {
   const { id: documentId } = req.params;
-  const { comment, historyId, notificationId } = req.body;
+  const { comment, transactionId, notificationId } = req.body;
 
-  if (!historyId) {
+  if (!transactionId) {
     res.status(400).json({
-      message: "History id must be provided",
+      message: "Transaction id must be provided",
     });
     return;
   }
@@ -272,13 +271,13 @@ async function returnDocument(req: AuthRequest, res: Response) {
     return;
   }
 
-  const history = await CustodyHistoryRepository.findOne({
-    where: { historyId },
+  const transaction = await TransactionRepository.findOne({
+    where: { transactionId },
     relations: { sender: true, receiver: true },
   });
-  if (!history) {
+  if (!transaction) {
     res.status(404).json({
-      message: "No history for history id provided",
+      message: "No transaction for transaction id provided",
     });
     return;
   }
@@ -294,7 +293,7 @@ async function returnDocument(req: AuthRequest, res: Response) {
   }
 
   const userId = req.user.userId;
-  if (userId !== history.receiverId) {
+  if (userId !== transaction.receiverId) {
     res.status(403).json({
       message: "Action not allowed. Only document receiver can return document",
     });
@@ -304,49 +303,48 @@ async function returnDocument(req: AuthRequest, res: Response) {
   notification.acknowledged = true;
   await NotificationRepository.save(notification);
 
-  history.acknowledgedTimestamp = new Date();
-  await CustodyHistoryRepository.save(history);
+  transaction.acknowledgedTimestamp = new Date();
+  await TransactionRepository.save(transaction);
 
-  // Create new history and notification for sending back
+  // Create new transaction and notification for sending back
 
-  const newHistory = new CustodyHistory();
-  newHistory.historyId = uuidv4();
-  newHistory.documentId = documentId;
-  newHistory.senderId = userId;
-  newHistory.sentTimestamp = new Date();
-  newHistory.acknowledgedTimestamp = new Date();
-  newHistory.comment = comment;
-  newHistory.receiverId = history.senderId;
-  const savedNewHistory = await CustodyHistoryRepository.save(newHistory);
+  const newTransaction = new Transaction();
+  newTransaction.transactionId = uuidv4();
+  newTransaction.documentId = documentId;
+  newTransaction.senderId = userId;
+  newTransaction.sentTimestamp = new Date();
+  newTransaction.acknowledgedTimestamp = new Date();
+  newTransaction.comment = comment;
+  newTransaction.receiverId = transaction.senderId;
+  const savedNewTransaction = await TransactionRepository.save(newTransaction);
 
   const returnNotification = new Notification();
   returnNotification.notificationId = uuidv4();
-  returnNotification.history = savedNewHistory;
-  returnNotification.historyId = savedNewHistory.historyId;
+  returnNotification.transactionId = savedNewTransaction.transactionId;
   returnNotification.acknowledged = true;
   returnNotification.documentId = documentId;
   const s = await NotificationRepository.save(returnNotification);
 
-  document.currentHolderId = history.senderId;
+  document.currentHolderId = transaction.senderId;
   await DocumentRepository.save(document);
 
   const n = await NotificationRepository.findOne({
     where: { notificationId: s.notificationId },
     relations: {
-      history: true,
+      transaction: true,
       document: true,
     },
   });
 
   // Send notification to document original sender
-  if (SocketService.getInstance().isUserOnline(history.senderId)) {
+  if (SocketService.getInstance().isUserOnline(transaction.senderId)) {
     SocketService.getInstance().emitToUser(
-      history.senderId,
+      transaction.senderId,
       "return_document",
       {
         ...n,
-        sender: history.receiver,
-        receiver: history.sender,
+        sender: transaction.receiver,
+        receiver: transaction.sender,
       }
     );
   }

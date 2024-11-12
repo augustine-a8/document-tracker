@@ -1,6 +1,6 @@
 import { Express } from "express";
 
-import { historyEndpoint } from "./history.route";
+import { transactionEndpoint } from "./transaction.route";
 import { usersEndpoint } from "./user.route";
 import { documentEndpoint } from "./document.route";
 import { authEndpoint } from "./auth.route";
@@ -8,7 +8,7 @@ import { Endpoint } from "../@types/endpoint";
 import { notificationEndpoint } from "./notification.route";
 
 const endpoints: Endpoint[] = [
-  historyEndpoint,
+  transactionEndpoint,
   usersEndpoint,
   documentEndpoint,
   authEndpoint,
