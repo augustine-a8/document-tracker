@@ -23,13 +23,4 @@ export class User extends BaseEntity {
     default: "user",
   })
   role: string;
-
-  @OneToMany(() => CustodyHistory, (custodyHistory) => custodyHistory.sender)
-  custodyHistoriesAsSender: CustodyHistory[];
-
-  @OneToMany(() => CustodyHistory, (custodyHistory) => custodyHistory.receiver)
-  custodyHistoriesAsReceiver: CustodyHistory[];
-
-  @OneToMany(() => Document, (document) => document.currentHolder)
-  currentlyHolding: Document[];
 }
