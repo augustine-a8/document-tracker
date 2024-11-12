@@ -10,7 +10,7 @@ import { SocketService } from "./services/SocketService";
 
 async function initializeServer() {
   dotenvConfig();
-  const { port, jwtSecret } = Config;
+  const { port } = Config;
 
   const app = createServer();
   const httpServer = http.createServer(app);

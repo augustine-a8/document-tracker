@@ -7,7 +7,8 @@ const Config: IConfig = {
   database_user: process.env.DATABASE_USERNAME as string,
   database_port: parseInt(process.env.DATABASE_PORT as string, 10) || 5432,
   port: parseInt(process.env.PORT as string, 10) || 8888,
-  jwtSecret: process.env.JWT_SECRET as string,
+  accessTokenSecret: process.env.ACCESS_TOKEN_SECRET as string,
+  refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET as string,
 };
 
 export { Config };

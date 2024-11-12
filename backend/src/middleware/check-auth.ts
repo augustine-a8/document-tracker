@@ -4,22 +4,22 @@ import jwt from "jsonwebtoken";
 import { AuthRequest } from "../@types/authRequest";
 import { Config } from "../config";
 
-const { jwtSecret } = Config;
+const { accessTokenSecret } = Config;
 
 function checkAuthentication(
   req: AuthRequest,
   res: Response,
   next: NextFunction
 ) {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  const token = req.cookies.accessToken;
   if (!token) {
-    res.status(401).json({ message: "Access Denied: No token provided" });
-    next();
+    res.status(403).json({
+      message: "Auth token not provided",
+    });
     return;
   }
 
-  jwt.verify(token, jwtSecret as string, (err, user) => {
+  jwt.verify(token, accessTokenSecret as string, (err: any, user: any) => {
     if (err) {
       return res.status(403).json({ message: "Access Denied: Invalid token" });
     }

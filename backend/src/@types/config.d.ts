@@ -5,5 +5,6 @@ export interface IConfig {
   database_user: string;
   database_port: number;
   port: number;
-  jwtSecret: string;
+  refreshTokenSecret: string;
+  accessTokenSecret: string;
 }
