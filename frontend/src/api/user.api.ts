@@ -3,17 +3,38 @@ import axios, { AxiosError } from "axios";
 import { Config } from "./config";
 const { BaseEndpoint } = Config;
 
-function searchUserApi(token: string, searchParam: string) {
-  const res = axios
-    .post(
-      `${BaseEndpoint}/users/search`,
-      { searchParam },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+const apiClient = axios.create({
+  baseURL: BaseEndpoint,
+  withCredentials: true,
+});
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (
+      error.response &&
+      error.response.status === 403 &&
+      !originalRequest._retry
+    ) {
+      originalRequest._retry = true;
+
+      try {
+        await apiClient.post("/auth/refresh-token");
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        console.error("Token refresh failed:", refreshError);
       }
-    )
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+function searchUserApi(searchParam: string) {
+  const res = apiClient
+    .post("/users/search", { searchParam })
     .then((res) => {
       return { status: res.status, data: res.data };
     })
@@ -24,11 +45,9 @@ function searchUserApi(token: string, searchParam: string) {
   return res;
 }
 
-function getMyAccountApi(token: string) {
-  const res = axios
-    .get(`${BaseEndpoint}/users/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+function getMyAccountApi() {
+  const res = apiClient
+    .get("/users/me")
     .then((res) => {
       return { status: res.status, data: res.data };
     })

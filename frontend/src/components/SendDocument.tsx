@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { MdOutlineCancel, MdOutlineClose } from "react-icons/md";
-import { useAuth } from "../hooks/useAuth";
 import { CiSearch } from "react-icons/ci";
 import { IUser } from "../@types/user";
 import { searchUserApi } from "../api/user.api";
@@ -27,10 +26,8 @@ export default function SendDocument({
   const [chosenUser, setChosenUser] = useState<IUser | null>(null);
   const [comment, setComment] = useState<string>("");
 
-  const { token } = useAuth();
-
   const handleSearchUser: (s: string) => void = (search: string) => {
-    searchUserApi(token, search)
+    searchUserApi(search)
       .then((res) => {
         if (res.status === 200) {
           setUsers(res.data.searchResults);

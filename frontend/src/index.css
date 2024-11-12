@@ -7,7 +7,6 @@ body {
 }
 
 main {
-  margin-inline: auto;
   background: white;
   position: absolute;
   top: 3.5rem;
@@ -72,13 +71,44 @@ main {
 }
 
 table tr:nth-of-type(even) {
-  background-color: #efefef;
+  background-color: #d5d5d5;
 }
 
 table tr:hover {
   cursor: pointer;
   box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px,
     rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
+}
+
+@media (max-width: 650px) {
+  thead {
+    display: none;
+  }
+
+  tbody td {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    padding-inline: 1rem;
+  }
+
+  tbody td input[type="checkbox"] {
+    justify-self: left;
+  }
+
+  tbody td:first-child {
+    padding-top: 1rem;
+  }
+
+  tbody td:last-child {
+    padding-bottom: 1rem;
+  }
+
+  tbody td::before {
+    content: attr(data-cell) ": ";
+    text-transform: capitalize;
+    font-weight: 500;
+    color: #4b5563;
+  }
 }
 
 /* table tr:nth-of-type(even) {
@@ -129,7 +159,7 @@ nav > div > div {
 
 .logo {
   letter-spacing: 0.5em;
-  color: darkcyan;
+  color: #023e8a;
   font-weight: 500;
   font-size: 1.5rem;
 }

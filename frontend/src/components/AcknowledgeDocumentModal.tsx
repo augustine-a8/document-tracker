@@ -3,7 +3,6 @@ import { MdOutlineClose } from "react-icons/md";
 import { useNotification } from "../hooks/useNotification";
 import { IError } from "../@types/error";
 import { acknowledgeDocumentApi } from "../api/history.api";
-import { useAuth } from "../hooks/useAuth";
 import { INotificationQueue } from "../@types/notification";
 
 export default function AcknowledgeDocumentModal() {
@@ -12,7 +11,6 @@ export default function AcknowledgeDocumentModal() {
   const [acknowledgementStatus, setAcknowledgementStatus] = useState<number>();
   const [currentNotification, setCurrentNotification] =
     useState<INotificationQueue | null>(null);
-  const { token } = useAuth();
 
   const [error, setError] = useState<IError | null>(null);
 
@@ -22,7 +20,6 @@ export default function AcknowledgeDocumentModal() {
     }
 
     acknowledgeDocumentApi(
-      token,
       currentNotification.notification.historyId,
       currentNotification.notification.notificationId
     )
@@ -112,7 +109,7 @@ function AcknowledgementModal({
   return (
     <div className="modal">
       <div className="modal-header">
-        <h2>"Acknowledge Document"</h2>
+        <h2>Acknowledge Document</h2>
         <div className="close-modal" role="button" onClick={toggleModal}>
           <MdOutlineClose size={18} />
         </div>

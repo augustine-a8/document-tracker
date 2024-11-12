@@ -1,16 +1,10 @@
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 
-import { Config } from "./config";
+import { apiClient } from "./config";
 
-const { BaseEndpoint } = Config;
-
-function getAllCustodyHistoryApi(token: string) {
-  const res = axios
-    .get(`${BaseEndpoint}/history`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+function getAllCustodyHistoryApi() {
+  const res = apiClient
+    .get("/history")
     .then((res) => {
       return { status: res.status, data: res.data };
     })
@@ -23,13 +17,9 @@ function getAllCustodyHistoryApi(token: string) {
   return res;
 }
 
-function getHistoryForDocumentApi(token: string, documentId: string) {
-  const res = axios
-    .get(`${BaseEndpoint}/history/${documentId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+function getHistoryForDocumentApi(documentId: string) {
+  const res = apiClient
+    .get(`/history/${documentId}`)
     .then((res) => {
       return { status: res.status, data: res.data };
     })
@@ -39,19 +29,11 @@ function getHistoryForDocumentApi(token: string, documentId: string) {
   return res;
 }
 
-function acknowledgeDocumentApi(
-  token: string,
-  historyId: string,
-  notificationId: string
-) {
-  const res = axios
-    .post(
-      `${BaseEndpoint}/history/${historyId}/acknowledge`,
-      {
-        notificationId,
-      },
-      { headers: { Authorization: `Bearer ${token}` } }
-    )
+function acknowledgeDocumentApi(historyId: string, notificationId: string) {
+  const res = apiClient
+    .post(`/history/${historyId}/acknowledge`, {
+      notificationId,
+    })
     .then((res) => {
       return { status: res.status, data: res.data };
     })
@@ -63,17 +45,12 @@ function acknowledgeDocumentApi(
 }
 
 function acknowledgeMultipleDocumentsApi(
-  token: string,
   acknowledgements: { historyId: string; notificationId: string }[]
 ) {
-  const res = axios
-    .post(
-      `${BaseEndpoint}/history/acknowledge`,
-      {
-        acknowledgements,
-      },
-      { headers: { Authorization: `Bearer ${token}` } }
-    )
+  const res = apiClient
+    .post("/history/acknowledge", {
+      acknowledgements,
+    })
     .then((res) => {
       return { status: res.status, data: res.data };
     })

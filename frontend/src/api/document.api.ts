@@ -1,17 +1,11 @@
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 
-import { Config } from "./config";
 import { INewDocument } from "../@types/document";
+import { apiClient } from "./config";
 
-const { BaseEndpoint } = Config;
-
-function getAllDocumentsApi(token: string) {
-  const res = axios
-    .get(`${BaseEndpoint}/documents`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+function getAllDocumentsApi() {
+  const res = apiClient
+    .get("/documents")
     .then((res) => {
       return {
         data: res.data,
@@ -28,17 +22,9 @@ function getAllDocumentsApi(token: string) {
   return res;
 }
 
-function addDocumentApi(token: string, newDocument: INewDocument) {
-  const res = axios
-    .post(
-      `${BaseEndpoint}/documents`,
-      { ...newDocument },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    )
+function addDocumentApi(newDocument: INewDocument) {
+  const res = apiClient
+    .post("/documents", { ...newDocument })
     .then((res) => {
       return { status: res.status, data: res.data };
     })
@@ -48,11 +34,9 @@ function addDocumentApi(token: string, newDocument: INewDocument) {
   return res;
 }
 
-function getDocumentByIdApi(documentId: string, token: string) {
-  const res = axios
-    .get(`${BaseEndpoint}/documents/${documentId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+function getDocumentByIdApi(documentId: string) {
+  const res = apiClient
+    .get(`/documents/${documentId}`)
     .then((res) => {
       return { status: res.status, data: res.data };
     })
@@ -66,17 +50,12 @@ function getDocumentByIdApi(documentId: string, token: string) {
 }
 
 function sendDocumentApi(
-  token: string,
   documentId: string,
   receiverId: string,
   comment: string
 ) {
-  const res = axios
-    .post(
-      `${BaseEndpoint}/documents/${documentId}/send`,
-      { receiverId, comment },
-      { headers: { Authorization: `Bearer ${token}` } }
-    )
+  const res = apiClient
+    .post(`/documents/${documentId}/send`, { receiverId, comment })
     .then((res) => {
       return { status: res.status, data: res.data };
     })
@@ -88,20 +67,17 @@ function sendDocumentApi(
 }
 
 function returnDocumentApi(
-  token: string,
   documentId: string,
   historyId: string,
   notificationId: string,
   comment: string
 ) {
-  const res = axios
-    .post(
-      `${BaseEndpoint}/documents/${documentId}/return`,
-      { historyId, notificationId, comment },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    )
+  const res = apiClient
+    .post(`/documents/${documentId}/return`, {
+      historyId,
+      notificationId,
+      comment,
+    })
     .then((res) => {
       return { status: res.status, data: res.data };
     })

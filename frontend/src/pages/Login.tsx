@@ -25,7 +25,7 @@ export default function Login() {
     loginApi(email, password)
       .then((res) => {
         if (res.status === 200) {
-          login(res.data.token);
+          login();
         }
       })
       .catch((err) => {

@@ -5,7 +5,6 @@ import {
 } from "react-icons/md";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { useAuth } from "../hooks/useAuth";
 import { useEffect, useState } from "react";
 import { getDocumentByIdApi, sendDocumentApi } from "../api/document.api";
 import { IDocument } from "../@types/document";
@@ -22,7 +21,6 @@ import EmptyComponent from "../components/EmptyComponent";
 
 export default function DocumentWithHistory() {
   const navigate = useNavigate();
-  const { token } = useAuth();
   const { documentId } = useParams();
 
   const [document, setDocument] = useState<IDocument | null>(null);
@@ -46,7 +44,7 @@ export default function DocumentWithHistory() {
 
   useEffect(() => {
     const fetchMyAccount = () => {
-      getMyAccountApi(token).then((res) => {
+      getMyAccountApi().then((res) => {
         if (res.status === 200) {
           setMe(res.data.myAccount);
         }
@@ -58,7 +56,7 @@ export default function DocumentWithHistory() {
 
   useEffect(() => {
     const fetchDocumentById = () => {
-      getDocumentByIdApi(documentId!, token)
+      getDocumentByIdApi(documentId!)
         .then((res) => {
           if (res.status === 200) {
             setDocument(res.data.document);
@@ -74,7 +72,7 @@ export default function DocumentWithHistory() {
 
   useEffect(() => {
     const fetchDocumentHistory = () => {
-      getHistoryForDocumentApi(token, documentId!)
+      getHistoryForDocumentApi(documentId!)
         .then((res) => {
           if (res.status === 200) {
             setHistory(res.data.custodyHistory);
@@ -98,7 +96,7 @@ export default function DocumentWithHistory() {
   const handleSendDocument = (receiverId: string, comment: string) => {
     setSendDocumentLoading(true);
     setSendDocumentError(null);
-    sendDocumentApi(token, documentId!, receiverId, comment)
+    sendDocumentApi(documentId!, receiverId, comment)
       .then((res) => {
         if (res.status === 200) {
           setHistory((prev) => [...prev, res.data.history]);
@@ -154,9 +152,9 @@ export default function DocumentWithHistory() {
         ) : (
           <>
             {document ? (
-              <div className="w-full grid grid-cols-[2fr_1fr] pt-4 px-4">
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="col-span-2">
+              <div className="w-full grid md:grid-cols-[2fr_1fr] pt-4 px-4">
+                <div className="flex flex-col gap-2 md:grid md:grid-cols-2">
+                  <div className="md:col-span-2">
                     <p className="lb-bold text-xl">{document.title}</p>
                   </div>
                   <div>
@@ -181,7 +179,7 @@ export default function DocumentWithHistory() {
                     <p className="lb-regular">{document.description}</p>
                   </div>
                 </div>
-                <div className="grid place-items-center">
+                <div className="grid place-items-center my-4 md:my-0">
                   {document.currentHolder?.userId === me?.userId ? (
                     <button
                       className="border border-[#007200] rounded-md text-[#007200] w-[60%] h-8 lb-regular hover:bg-[#007200] hover:text-white ease-in-out duration-300"

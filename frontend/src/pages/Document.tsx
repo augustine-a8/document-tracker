@@ -9,10 +9,10 @@ import { IError } from "../@types/error";
 import EmptyComponent from "../components/EmptyComponent";
 import LoadingComponent from "../components/LoadingComponent";
 import AllDocumentsTable from "../components/AllDocumentsTable";
+import { IoMdAdd } from "react-icons/io";
 
 export default function Document() {
   const [showModal, setShowModal] = useState<boolean>(false);
-  const { token } = useAuth();
   const [allDocuments, setAllDocuments] = useState<IDocument[]>([]);
   const [filteredDocuments, setFilteredDocuments] = useState<IDocument[]>([]);
   const [allDocumentsLoading, setAllDocumentsLoading] = useState<boolean>(true);
@@ -44,7 +44,7 @@ export default function Document() {
   useEffect(() => {
     const fetchAllDocuments = () => {
       setAllDocumentsLoading(true);
-      getAllDocumentsApi(token)
+      getAllDocumentsApi()
         .then((res) => {
           if (res.status === 200) {
             setAllDocuments(res.data.allDocuments);
@@ -74,7 +74,7 @@ export default function Document() {
   ) => {
     setAddNewDocumentLoading(true);
     setAddNewDocumentError(null);
-    addDocumentApi(token, { serialNumber, title, description, type })
+    addDocumentApi({ serialNumber, title, description, type })
       .then((res) => {
         if (res.status === 200) {
           toggleModal();
@@ -96,7 +96,7 @@ export default function Document() {
     <>
       <main>
         <div className="w-full flex flex-row items-center justify-between px-4 py-2 border-b">
-          <div>
+          <div className="hidden md:block">
             <button
               className="border border-[#023e8a] w-32 h-8 rounded-md text-[#023e8a] hover:bg-[#023e8a] hover:text-white ease-in-out duration-300"
               onClick={toggleModal}
@@ -104,7 +104,17 @@ export default function Document() {
               <p className="text-sm">Add Document</p>
             </button>
           </div>
-          <div className="flex flex-row items-center border rounded-md px-2 text-gray-500 h-8 w-[25%]">
+          <div className="block md:hidden">
+            <button
+              className="border border-[#023e8a] bg-[#023e8a] text-white w-8 h-8 grid place-items-center rounded-md"
+              onClick={toggleModal}
+            >
+              <p className="text-sm text-white">
+                <IoMdAdd />
+              </p>
+            </button>
+          </div>
+          <div className="flex flex-row items-center border rounded-md px-2 text-gray-500 h-8">
             <input
               type="text"
               placeholder="Search for document..."

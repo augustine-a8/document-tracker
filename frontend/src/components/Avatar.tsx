@@ -3,7 +3,6 @@ import { FaUser } from "react-icons/fa";
 import { MdLogout } from "react-icons/md";
 import { IUser } from "../@types/user";
 import { getMyAccountApi } from "../api/user.api";
-import { useAuth } from "../hooks/useAuth";
 
 interface AvatarProps {
   avatarDropdownRef: React.RefObject<HTMLDivElement>;
@@ -19,11 +18,10 @@ export default function Avatar({
   handleLogout,
 }: AvatarProps) {
   const [me, setMe] = useState<IUser>();
-  const { token } = useAuth();
 
   useEffect(() => {
     const getMyAccount = () => {
-      getMyAccountApi(token)
+      getMyAccountApi()
         .then((res) => {
           if (res.status === 200) {
             setMe(res.data.myAccount);

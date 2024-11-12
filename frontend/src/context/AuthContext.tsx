@@ -11,25 +11,21 @@ export const AuthContext = createContext<AuthContextType | undefined>(
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [token, setToken] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const storedAuth = localStorage.getItem("auth");
     if (storedAuth) {
       const auth = JSON.parse(storedAuth);
-      setToken(auth.token);
       setIsAuthenticated(auth.isAuthenticated);
     }
     setLoading(false);
   }, []);
 
-  const login = (token: string) => {
+  const login = () => {
     setIsAuthenticated(true);
-    setToken(token);
     const auth = {
       isAuthenticated: true,
-      token,
     };
     localStorage.setItem("auth", JSON.stringify(auth));
   };
@@ -44,7 +40,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, token, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

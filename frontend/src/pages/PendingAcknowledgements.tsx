@@ -3,7 +3,6 @@ import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import { PiKeyReturn } from "react-icons/pi";
 
 import { acknowledgeMultipleDocumentsApi } from "../api/history.api";
-import { useAuth } from "../hooks/useAuth";
 import { IError } from "../@types/error";
 import { useNotification } from "../hooks/useNotification";
 import { IAcknowledgement, INotification } from "../@types/notification";
@@ -11,7 +10,6 @@ import EmptyComponent from "../components/EmptyComponent";
 import ReturnDocument from "../components/ReturnDocument";
 
 export default function PendingAcknowledgements() {
-  const { token } = useAuth();
   const [acknowledgements, setAcknowledgements] = useState<IAcknowledgement[]>(
     []
   );
@@ -52,7 +50,7 @@ export default function PendingAcknowledgements() {
   };
 
   const acknowledgeMultipleDocuments = () => {
-    acknowledgeMultipleDocumentsApi(token, acknowledgements)
+    acknowledgeMultipleDocumentsApi(acknowledgements)
       .then((res) => {
         if (res.status === 200) {
           removeNotifications(acknowledgements);

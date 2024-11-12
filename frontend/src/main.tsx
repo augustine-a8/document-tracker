@@ -43,7 +43,7 @@ const router = createBrowserRouter([
         element: <DocumentWithHistory />,
       },
       {
-        path: "pending-acknowledgements",
+        path: "acknowledgements",
         element: <PendingAcknowledgements />,
       },
     ],

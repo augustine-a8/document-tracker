@@ -30,7 +30,6 @@ export default function ReturnDocument({
 
   const textInputRef = useRef<HTMLInputElement>(null);
 
-  const { token } = useAuth();
   const { removeNotifications } = useNotification();
 
   const returnDocument = () => {
@@ -43,7 +42,7 @@ export default function ReturnDocument({
     if (!comment) {
       return;
     }
-    returnDocumentApi(token, documentId, historyId, notificationId, comment)
+    returnDocumentApi(documentId, historyId, notificationId, comment)
       .then((res) => {
         if (res.status === 200) {
           removeNotifications([

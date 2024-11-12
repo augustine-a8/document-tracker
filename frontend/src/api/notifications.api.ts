@@ -1,14 +1,10 @@
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 
-import { Config } from "./config";
+import { apiClient } from "./config";
 
-const { BaseEndpoint } = Config;
-
-function getUserNotificationsApi(token: string) {
-  const res = axios
-    .get(`${BaseEndpoint}/notifications`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+function getUserNotificationsApi() {
+  const res = apiClient
+    .get("/notifications")
     .then((res) => {
       return { status: res.status, data: res.data };
     })
