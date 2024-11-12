@@ -184,8 +184,6 @@ async function sendDocument(req: AuthRequest, res: Response) {
     return;
   }
 
-  const sender = await UserRepository.findOne({ where: { userId: senderId } });
-
   const history = new CustodyHistory();
   history.historyId = uuidv4();
   history.documentId = documentId;
@@ -217,25 +215,25 @@ async function sendDocument(req: AuthRequest, res: Response) {
   notification.history = savedHistory;
   notification.historyId = savedHistory.historyId;
   notification.acknowledged = false;
-  notification.senderId = senderId;
-  notification.receiverId = receiverId;
   notification.documentId = documentId;
 
   const n = await NotificationRepository.save(notification);
   const newNotification = await NotificationRepository.findOne({
     where: { notificationId: n.notificationId },
     relations: {
-      sender: true,
-      receiver: true,
       document: true,
       history: true,
     },
   });
 
+  const sender = await UserRepository.findOne({ where: { userId: senderId } });
+
   console.log("Sending socket event to client");
   if (SocketService.getInstance().isUserOnline(receiverId)) {
     SocketService.getInstance().emitToUser(receiverId, "acknowledge_document", {
       ...newNotification,
+      sender,
+      receiver,
     });
   }
 }
@@ -276,6 +274,7 @@ async function returnDocument(req: AuthRequest, res: Response) {
 
   const history = await CustodyHistoryRepository.findOne({
     where: { historyId },
+    relations: { sender: true, receiver: true },
   });
   if (!history) {
     res.status(404).json({
@@ -325,8 +324,6 @@ async function returnDocument(req: AuthRequest, res: Response) {
   returnNotification.history = savedNewHistory;
   returnNotification.historyId = savedNewHistory.historyId;
   returnNotification.acknowledged = true;
-  returnNotification.senderId = userId;
-  returnNotification.receiverId = history.senderId;
   returnNotification.documentId = documentId;
   const s = await NotificationRepository.save(returnNotification);
 
@@ -338,19 +335,18 @@ async function returnDocument(req: AuthRequest, res: Response) {
     relations: {
       history: true,
       document: true,
-      sender: true,
-      receiver: true,
     },
   });
 
   // Send notification to document original sender
-
   if (SocketService.getInstance().isUserOnline(history.senderId)) {
     SocketService.getInstance().emitToUser(
       history.senderId,
       "return_document",
       {
         ...n,
+        sender: history.receiver,
+        receiver: history.sender,
       }
     );
   }

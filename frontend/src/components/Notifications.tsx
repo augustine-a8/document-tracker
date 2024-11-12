@@ -16,6 +16,8 @@ export default function Notifications({
   const notificationDropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
+  console.log({ allNotifications });
+
   const handleClickOutsideNotificationDropdown = (event: MouseEvent) => {
     // Check if the click is outside the dropdown
     if (

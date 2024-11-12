@@ -31,18 +31,4 @@ export class Notification extends BaseEntity {
 
   @Column({ type: "boolean", name: "acknowledged", default: false })
   acknowledged: boolean;
-
-  @Column({ name: "sender_id", type: "uuid" })
-  senderId: string;
-
-  @ManyToOne(() => User)
-  @JoinColumn({ name: "sender_id" })
-  sender: User;
-
-  @Column({ type: "uuid", name: "receiver_id" })
-  receiverId: string;
-
-  @ManyToOne(() => User)
-  @JoinColumn({ name: "receiver_id" })
-  receiver: User;
 }

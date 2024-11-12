@@ -7,7 +7,6 @@ import { AuthRequest } from "../@types/authRequest";
 const CustodyHistoryRepository = AppDataSource.getRepository(CustodyHistory);
 const DocumentRepository = AppDataSource.getRepository(Document);
 const NotificationRepository = AppDataSource.getRepository(Notification);
-const UserRepository = AppDataSource.getRepository(User);
 
 async function getCustodyHistoryForDocument(req: Request, res: Response) {
   const { id: documentId } = req.params;
@@ -68,7 +67,7 @@ async function acknowledgeDocument(req: AuthRequest, res: Response) {
     return;
   }
 
-  if (history.receiverId !== userId || notification.receiverId !== userId) {
+  if (history.receiverId !== userId) {
     res.status(403).json({
       message: "Action not allowed. Only receiver of document can acknowledge",
     });
@@ -127,7 +126,7 @@ async function acknowledgeMultipleDocuments(req: AuthRequest, res: Response) {
         return;
       }
 
-      if (history.receiverId !== userId || notification.receiverId !== userId) {
+      if (history.receiverId !== userId) {
         res.status(403).json({
           message:
             "Action not allowed. Only receiver of document can acknowledge",
