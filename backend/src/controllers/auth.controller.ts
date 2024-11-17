@@ -64,7 +64,7 @@ async function login(req: Request, res: Response) {
 }
 
 async function register(req: Request, res: Response) {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
 
   if (!email) {
     res.status(400).json({
@@ -98,7 +98,9 @@ async function register(req: Request, res: Response) {
   user.name = name;
   user.email = email;
   user.password = hashPassword(password);
-  user.role = "user";
+  if (role) {
+    user.role = role;
+  }
 
   const savedUser = await UserRepository.save(user);
   const accessToken = generateToken(

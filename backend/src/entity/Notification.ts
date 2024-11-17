@@ -6,8 +6,8 @@ import {
   ManyToOne,
   JoinColumn,
 } from "typeorm";
-import { Transaction } from "./Transaction";
-import { Document } from "./Document";
+import { ArchiveTransaction, Transaction } from "./Transaction";
+import { NotificationType } from "../@types/notification";
 
 @Entity({ name: "notification" })
 export class Notification extends BaseEntity {
@@ -17,17 +17,34 @@ export class Notification extends BaseEntity {
   @Column({ type: "uuid", name: "transaction_id" })
   transactionId: string;
 
+  @Column({
+    type: "varchar",
+    enum: ["acknowledge", "return"],
+    name: "notification_type",
+  })
+  notificationType: NotificationType;
+
   @ManyToOne(() => Transaction)
   @JoinColumn({ name: "transaction_id" })
   transaction: Transaction;
+}
 
-  @Column({ type: "uuid", name: "document_id" })
-  documentId: string;
+@Entity({ name: "archive_notification" })
+export class ArchiveNotification extends BaseEntity {
+  @PrimaryColumn({ type: "uuid", name: "notification_id" })
+  notificationId: string;
 
-  @ManyToOne(() => Document)
-  @JoinColumn({ name: "document_id" })
-  document: Document;
+  @Column({ type: "uuid", name: "transaction_id" })
+  transactionId: string;
 
-  @Column({ type: "boolean", name: "acknowledged", default: false })
-  acknowledged: boolean;
+  @Column({
+    type: "varchar",
+    enum: ["request_approval", "archive_document_request"],
+    name: "notification_type",
+  })
+  notificationType: NotificationType;
+
+  @ManyToOne(() => ArchiveTransaction)
+  @JoinColumn({ name: "transaction_id" })
+  transaction: ArchiveTransaction;
 }

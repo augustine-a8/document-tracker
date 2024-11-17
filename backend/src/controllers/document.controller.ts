@@ -35,7 +35,11 @@ async function getDocumentById(req: Request, res: Response) {
   const { id: documentId } = req.params;
   const document = await DocumentRepository.findOne({
     where: { documentId },
-    relations: { currentHolder: true, transactions: true, creator: true },
+    relations: { currentHolder: true, creator: true },
+  });
+
+  const transactions = await TransactionRepository.find({
+    where: { documentId },
   });
 
   if (!document) {
@@ -46,6 +50,7 @@ async function getDocumentById(req: Request, res: Response) {
     res.status(200).json({
       message: "Document retrieved",
       document,
+      transactions,
     });
   }
 }
@@ -198,6 +203,7 @@ async function sendDocument(req: AuthRequest, res: Response) {
     relations: {
       sender: true,
       receiver: true,
+      document: true,
     },
   });
 
@@ -212,27 +218,16 @@ async function sendDocument(req: AuthRequest, res: Response) {
 
   const notification = new Notification();
   notification.notificationId = uuidv4();
+  notification.notificationType = "acknowledge";
   notification.transactionId = savedTransaction.transactionId;
-  notification.acknowledged = false;
-  notification.documentId = documentId;
 
-  const n = await NotificationRepository.save(notification);
-  const newNotification = await NotificationRepository.findOne({
-    where: { notificationId: n.notificationId },
-    relations: {
-      document: true,
-      transaction: true,
-    },
-  });
+  const savedNotification = await NotificationRepository.save(notification);
 
-  const sender = await UserRepository.findOne({ where: { userId: senderId } });
-
-  console.log("Sending socket event to client");
   if (SocketService.getInstance().isUserOnline(receiverId)) {
+    console.log("User is online. Sending acknowledge_document event");
     SocketService.getInstance().emitToUser(receiverId, "acknowledge_document", {
-      ...newNotification,
-      sender,
-      receiver,
+      ...savedNotification,
+      transaction: newTransaction,
     });
   }
 }
@@ -300,9 +295,7 @@ async function returnDocument(req: AuthRequest, res: Response) {
     return;
   }
 
-  notification.acknowledged = true;
-  await NotificationRepository.save(notification);
-
+  transaction.acknowledged = true;
   transaction.acknowledgedTimestamp = new Date();
   await TransactionRepository.save(transaction);
 
@@ -313,6 +306,7 @@ async function returnDocument(req: AuthRequest, res: Response) {
   newTransaction.documentId = documentId;
   newTransaction.senderId = userId;
   newTransaction.sentTimestamp = new Date();
+  newTransaction.acknowledged = true;
   newTransaction.acknowledgedTimestamp = new Date();
   newTransaction.comment = comment;
   newTransaction.receiverId = transaction.senderId;
@@ -321,30 +315,31 @@ async function returnDocument(req: AuthRequest, res: Response) {
   const returnNotification = new Notification();
   returnNotification.notificationId = uuidv4();
   returnNotification.transactionId = savedNewTransaction.transactionId;
-  returnNotification.acknowledged = true;
-  returnNotification.documentId = documentId;
-  const s = await NotificationRepository.save(returnNotification);
+  returnNotification.notificationType = "return";
+  const savedNotification = await NotificationRepository.save(
+    returnNotification
+  );
 
   document.currentHolderId = transaction.senderId;
   await DocumentRepository.save(document);
 
-  const n = await NotificationRepository.findOne({
-    where: { notificationId: s.notificationId },
+  const transactionForNotification = await TransactionRepository.findOne({
+    where: { transactionId: savedNotification.transactionId },
     relations: {
-      transaction: true,
+      sender: true,
+      receiver: true,
       document: true,
     },
   });
 
-  // Send notification to document original sender
   if (SocketService.getInstance().isUserOnline(transaction.senderId)) {
+    console.log("User is online. Sending return_document event");
     SocketService.getInstance().emitToUser(
       transaction.senderId,
       "return_document",
       {
-        ...n,
-        sender: transaction.receiver,
-        receiver: transaction.sender,
+        ...savedNotification,
+        transaction: transactionForNotification,
       }
     );
   }

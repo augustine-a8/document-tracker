@@ -89,9 +89,7 @@ async function acknowledgeDocument(req: AuthRequest, res: Response) {
   document.currentHolderId = userId;
   const savedDocument = await DocumentRepository.save(document);
 
-  notification.acknowledged = true;
-  await NotificationRepository.save(notification);
-
+  transaction.acknowledged = true;
   transaction.acknowledgedTimestamp = new Date();
   await TransactionRepository.save(transaction);
 
@@ -154,9 +152,7 @@ async function acknowledgeMultipleDocuments(req: AuthRequest, res: Response) {
       document.currentHolderId = userId;
       await DocumentRepository.save(document);
 
-      notification.acknowledged = true;
-      await NotificationRepository.save(notification);
-
+      transaction.acknowledged = true;
       transaction.acknowledgedTimestamp = new Date();
       await TransactionRepository.save(transaction);
     }

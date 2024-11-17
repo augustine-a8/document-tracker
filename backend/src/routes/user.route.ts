@@ -3,6 +3,7 @@ import { Router } from "express";
 import { Endpoint } from "../@types/endpoint";
 import {
   addUser,
+  getAllDepartmentHeads,
   getAllUsers,
   getMyAccount,
   searchUserByNameOrEmail,
@@ -20,6 +21,7 @@ router.post(
   asyncHandler(searchUserByNameOrEmail)
 );
 router.post("/", asyncHandler(addUser));
+router.get("/hods", checkAuthentication, asyncHandler(getAllDepartmentHeads));
 
 const usersEndpoint: Endpoint = { path: "/users", router };
 

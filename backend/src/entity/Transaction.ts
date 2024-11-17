@@ -5,12 +5,9 @@ import {
   PrimaryColumn,
   ManyToOne,
   JoinColumn,
-  Unique,
-  OneToMany,
 } from "typeorm";
-import { Document } from "./Document";
+import { ArchiveDocument, Document } from "./Document";
 import { User } from "./User";
-import { Notification } from "./Notification";
 
 @Entity({ name: "transaction" })
 export class Transaction extends BaseEntity {
@@ -44,6 +41,53 @@ export class Transaction extends BaseEntity {
   @Column({ type: "timestamp", name: "sent_timestamp" })
   sentTimestamp: Date;
 
+  @Column({ type: "boolean", default: false })
+  acknowledged: boolean;
+
   @Column({ type: "timestamp", name: "acknowledged_timestamp", nullable: true })
   acknowledgedTimestamp: Date | null;
+}
+
+@Entity({ name: "archive_transaction" })
+export class ArchiveTransaction extends BaseEntity {
+  @PrimaryColumn({ name: "transaction_id" })
+  transactionId: string;
+
+  @Column({ type: "uuid", name: "document_id" })
+  documentId: string;
+
+  @ManyToOne(() => ArchiveDocument)
+  @JoinColumn({ name: "document_id" })
+  document: ArchiveDocument;
+
+  @Column({ type: "uuid", name: "requester_id" })
+  requesterId: string;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: "requester_id" })
+  requester: User;
+
+  @Column({ type: "timestamp", name: "requested_at" })
+  requestedAt: Date;
+
+  @Column({
+    type: "varchar",
+    name: "status",
+    enum: ["submitted", "rejected", "approved", "accepted"],
+    default: "submitted",
+  })
+  status: string;
+
+  @Column({ type: "text" })
+  comment: string;
+
+  @Column({ type: "uuid", name: "request_approver_id" })
+  requestApproverId: string;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: "request_approver_id" })
+  requestApprover: User;
+
+  @Column({ type: "timestamp", name: "request_approved_at", nullable: true })
+  requestApprovedAt: Date | null;
 }

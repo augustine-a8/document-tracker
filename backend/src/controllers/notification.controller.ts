@@ -2,40 +2,91 @@ import { Response } from "express";
 
 import { AuthRequest } from "../@types/authRequest";
 import { AppDataSource } from "../data-source";
-import { Transaction, Notification } from "../entity";
+import {
+  Transaction,
+  Notification,
+  ArchiveNotification,
+  ArchiveTransaction,
+} from "../entity";
+import { NotificationType } from "../@types/notification";
 
-const NotificationRepository = AppDataSource.getRepository(Notification);
 const TransactionRepository = AppDataSource.getRepository(Transaction);
+const NotificationRepository = AppDataSource.getRepository(Notification);
+
+const ArchiveTransactionRepository =
+  AppDataSource.getRepository(ArchiveTransaction);
+const ArchiveNotificationRepository =
+  AppDataSource.getRepository(ArchiveNotification);
 
 async function getUserNotifications(req: AuthRequest, res: Response) {
   const userId = req.user.userId;
 
-  const notifications = await NotificationRepository.find({
-    where: { acknowledged: false },
+  const documentNotifications = await NotificationRepository.find({
     relations: {
-      document: true,
       transaction: true,
     },
   });
 
-  const userNotifications = notifications.filter(
-    (notification) => notification.transaction.receiverId === userId
+  const userDocumentNotifications = documentNotifications.filter(
+    (notification) =>
+      notification.transaction.receiverId === userId &&
+      !notification.transaction.acknowledged
   );
 
-  const fullUserNotifications = userNotifications.map(async (notification) => {
-    const transaction = await Transaction.findOne({
-      where: { transactionId: notification.transactionId },
-      relations: { sender: true, receiver: true },
-    });
+  const fullUserDocumentNotifications = userDocumentNotifications.map(
+    async (userDocumentNotification) => {
+      const transaction = await TransactionRepository.findOne({
+        where: { transactionId: userDocumentNotification.transactionId },
+        relations: {
+          document: true,
+          receiver: true,
+          sender: true,
+        },
+      });
 
-    return {
-      ...notification,
-      sender: transaction?.sender,
-      receiver: transaction?.receiver,
-    };
+      return {
+        ...userDocumentNotification,
+        transaction,
+      };
+    }
+  );
+
+  const archiveNotifications = await ArchiveNotificationRepository.find({
+    relations: {
+      transaction: true,
+    },
   });
 
-  Promise.all(fullUserNotifications).then((allNotifications) => {
+  const userArchiveNotifications = archiveNotifications.filter(
+    (notification) =>
+      notification.transaction.requesterId === userId &&
+      notification.transaction.status !== "submitted"
+  );
+
+  const fullUserArchiveNotifications = userArchiveNotifications.map(
+    async (userArchiveNotification) => {
+      const transaction = await ArchiveTransactionRepository.findOne({
+        where: { transactionId: userArchiveNotification.transactionId },
+        relations: {
+          document: true,
+          requester: true,
+          requestApprover: true,
+        },
+      });
+
+      return {
+        ...userArchiveNotification,
+        transaction,
+      };
+    }
+  );
+
+  const allUserNotifications = [
+    ...fullUserArchiveNotifications,
+    ...fullUserDocumentNotifications,
+  ];
+
+  Promise.all(allUserNotifications).then((allNotifications) => {
     res.status(200).json({
       message: "All notifications retreived",
       notifications: allNotifications,

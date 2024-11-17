@@ -88,4 +88,19 @@ async function getMyAccount(req: AuthRequest, res: Response) {
   });
 }
 
-export { getAllUsers, addUser, searchUserByNameOrEmail, getMyAccount };
+async function getAllDepartmentHeads(req: AuthRequest, res: Response) {
+  const departmentHeads = await UserRepository.find({ where: { role: "HOD" } });
+
+  res.status(200).json({
+    message: "Retrieved all department heads",
+    departmentHeads,
+  });
+}
+
+export {
+  getAllUsers,
+  addUser,
+  searchUserByNameOrEmail,
+  getMyAccount,
+  getAllDepartmentHeads,
+};

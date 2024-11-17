@@ -16,7 +16,7 @@ export class User extends BaseEntity {
 
   @Column({
     type: "varchar",
-    enum: ["user", "admin"],
+    enum: ["user", "admin", "archiver", "HOD"],
     length: 50,
     default: "user",
   })

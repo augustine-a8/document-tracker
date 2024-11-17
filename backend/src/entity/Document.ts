@@ -49,7 +49,27 @@ export class Document extends BaseEntity {
   @ManyToOne(() => User)
   @JoinColumn({ name: "current_holder_id" })
   currentHolder: User;
+}
 
-  @OneToMany(() => Transaction, (transaction) => transaction.document)
-  transactions: Transaction[];
+@Entity({ name: "archive_document" })
+export class ArchiveDocument extends BaseEntity {
+  @PrimaryColumn({ type: "uuid", name: "document_id" })
+  documentId: string;
+
+  @Column({ type: "varchar" })
+  title: string;
+
+  @Column({
+    type: "varchar",
+    name: "serial_number",
+    unique: true,
+    nullable: false,
+  })
+  serialNumber: string;
+
+  @Column({ type: "varchar" })
+  type: string;
+
+  @Column({ type: "text" })
+  location: string; // JSON string with parameters; location, rack, compartment, shelf and box
 }
