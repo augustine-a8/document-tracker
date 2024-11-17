@@ -2,26 +2,9 @@ import { CiSearch } from "react-icons/ci";
 import { RiArchive2Line, RiFileUploadLine } from "react-icons/ri";
 import { NavLink, Outlet } from "react-router-dom";
 import { MdPendingActions } from "react-icons/md";
-// import { useEffect, useState } from "react";
-// import { getMyAccountApi } from "../api/user.api";
-// import { IUser } from "../@types/user";
 import { useAuth } from "../hooks/useAuth";
 
 export default function Archives() {
-  // const [myAccount, setMyAccount] = useState<IUser>();
-
-  // useEffect(() => {
-  //   const getMyAccount = () => {
-  //     getMyAccountApi().then((res) => {
-  //       if (res.status === 200) {
-  //         setMyAccount(res.data.myAccount);
-  //       }
-  //     });
-  //   };
-
-  //   getMyAccount();
-  // }, []);
-
   const { myAccount } = useAuth();
 
   return (
