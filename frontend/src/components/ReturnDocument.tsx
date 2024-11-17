@@ -3,20 +3,20 @@ import { MdOutlineClose } from "react-icons/md";
 import { INotification } from "../@types/notification";
 import { FaCheck, FaTimes } from "react-icons/fa";
 
-import { useAuth } from "../hooks/useAuth";
 import { returnDocumentApi } from "../api/document.api";
 import { useNotification } from "../hooks/useNotification";
 import LoadingComponent from "./LoadingComponent";
 import { IError } from "../@types/error";
+import { ITransaction } from "../@types/transaction";
 
 interface ReturnDocumentProps {
   toggleShowReturnModal: () => void;
-  documentToReturn: INotification;
+  notificationForDocumentToReturn: INotification;
 }
 
 export default function ReturnDocument({
   toggleShowReturnModal,
-  documentToReturn,
+  notificationForDocumentToReturn,
 }: ReturnDocumentProps) {
   const [returnDocumentLoading, setReturnDocumentLoading] =
     useState<boolean>(false);
@@ -34,21 +34,22 @@ export default function ReturnDocument({
 
   const returnDocument = () => {
     setReturnDocumentLoading(true);
-    const documentId = documentToReturn.documentId;
-    const historyId = documentToReturn.historyId;
-    const notificationId = documentToReturn.notificationId;
+    const documentId = notificationForDocumentToReturn.transaction.documentId;
+    const transactionId = notificationForDocumentToReturn.transactionId;
+    const notificationId = notificationForDocumentToReturn.notificationId;
     const comment =
       selectedReason === "" ? textInputRef.current?.value : selectedReason;
     if (!comment) {
       return;
     }
-    returnDocumentApi(documentId, historyId, notificationId, comment)
+    returnDocumentApi(documentId, transactionId, notificationId, comment)
       .then((res) => {
         if (res.status === 200) {
           removeNotifications([
             {
-              historyId: documentToReturn.historyId,
-              notificationId: documentToReturn.notificationId,
+              transactionId:
+                notificationForDocumentToReturn.transaction.transactionId,
+              notificationId: notificationForDocumentToReturn.notificationId,
             },
           ]);
           setReturnDocumentStatus(200);
@@ -84,9 +85,13 @@ export default function ReturnDocument({
           </div>
         </div>
         <div className="w-full">
-          <p className="mx-4 my-2 rounded-sm bg-[#e5e5e5] px-2 py-1 text-sm">
-            Are you sure you want to return {documentToReturn.document.title} to{" "}
-            {documentToReturn.sender.name}
+          <p className="mx-4 my-2 rounded-md bg-gray-200 px-2 py-1 text-sm font-semibold">
+            Are you sure you want to return{" "}
+            {notificationForDocumentToReturn.transaction.document.title} to{" "}
+            {
+              (notificationForDocumentToReturn.transaction as ITransaction)
+                .sender.name
+            }
           </p>
           <form action="" className="mx-4 text-sm flex flex-col gap-1">
             <p>Reason: </p>

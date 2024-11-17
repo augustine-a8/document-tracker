@@ -3,6 +3,7 @@ import { FaUser } from "react-icons/fa";
 import { MdLogout } from "react-icons/md";
 import { IUser } from "../@types/user";
 import { getMyAccountApi } from "../api/user.api";
+import { useAuth } from "../hooks/useAuth";
 
 interface AvatarProps {
   avatarDropdownRef: React.RefObject<HTMLDivElement>;
@@ -17,26 +18,12 @@ export default function Avatar({
   toggleAvatarDropdown,
   handleLogout,
 }: AvatarProps) {
-  const [me, setMe] = useState<IUser>();
-
-  useEffect(() => {
-    const getMyAccount = () => {
-      getMyAccountApi()
-        .then((res) => {
-          if (res.status === 200) {
-            setMe(res.data.myAccount);
-          }
-        })
-        .catch((err) => {});
-    };
-
-    getMyAccount();
-  }, []);
+  const { myAccount } = useAuth();
   return (
     <div className="relative">
       <button onClick={toggleAvatarDropdown}>
         <div className="w-8 h-8 border border-gray-600 rounded-full grid place-items-center">
-          <p className="text-sm">{me?.name.slice(0, 2)}</p>
+          <p className="text-sm">{myAccount?.name.slice(0, 2)}</p>
         </div>
       </button>
       {showAvatarDropdown ? (

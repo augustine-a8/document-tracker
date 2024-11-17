@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 import { FaCircle, FaRegBell } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useNotification } from "../hooks/useNotification";
+import { IArchiveTransaction, ITransaction } from "../@types/transaction";
 
 interface NotificationsProps {
   showNotificationDropdown: boolean;
@@ -12,11 +13,9 @@ export default function Notifications({
   showNotificationDropdown,
   toggleNotificationDropdown,
 }: NotificationsProps) {
-  const { allNotifications } = useNotification();
+  const { notificationQueue } = useNotification();
   const notificationDropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-
-  console.log({ allNotifications });
 
   const handleClickOutsideNotificationDropdown = (event: MouseEvent) => {
     // Check if the click is outside the dropdown
@@ -52,11 +51,6 @@ export default function Notifications({
     };
   }, [showNotificationDropdown]);
 
-  const goToPendingAcknowledgements = () => {
-    navigate("/pending-acknowledgements");
-    // toggleNotificationModal();
-  };
-
   return (
     <div className="relative h-[inherit]">
       <button
@@ -64,9 +58,9 @@ export default function Notifications({
         className="text-gray-600 active:text-black h-[inherit] relative"
       >
         <FaRegBell size={20} />
-        {allNotifications.length > 0 ? (
+        {notificationQueue.length > 0 ? (
           <div className="absolute top-[calc(50%-16px)] left-[50%] w-4 h-4 bg-[#d00000] grid place-items-center rounded-full">
-            <p className="text-[10px] text-white">{allNotifications.length}</p>
+            <p className="text-[10px] text-white">{notificationQueue.length}</p>
           </div>
         ) : undefined}
       </button>
@@ -75,21 +69,99 @@ export default function Notifications({
           className="absolute bg-white z-50 top-[80%] right-[10%] w-[300px] rounded-md dropdown-shadow flex flex-col max-h-[40vh] overflow-y-auto"
           ref={notificationDropdownRef}
         >
-          {allNotifications.length > 0 ? (
-            allNotifications.map((notification) => {
+          {notificationQueue.length > 0 ? (
+            notificationQueue.map((notification) => {
               return (
-                <div
+                <Link
+                  key={notification.notificationId}
                   className="py-2 px-4 flex flex-row items-center gap-4 hover:cursor-pointer hover:bg-gray-100"
-                  role="link"
-                  onClick={goToPendingAcknowledgements}
+                  to="/acknowledgements"
                 >
-                  <FaCircle size={8} color="#007200" />
-                  <p className="text-sm">
-                    {notification.sender.name} sent{" "}
-                    {notification.document.title} at{" "}
-                    {new Date(notification.history.sentTimestamp).toUTCString()}
-                  </p>
-                </div>
+                  {notification.notificationType === "acknowledge" ? (
+                    <>
+                      <FaCircle size={8} color="#007200" />
+                      <p className="text-sm">
+                        {(notification.transaction as ITransaction).sender.name}{" "}
+                        sent{" "}
+                        {
+                          (notification.transaction as ITransaction).document
+                            .title
+                        }{" "}
+                        at{" "}
+                        {new Date(
+                          (
+                            notification.transaction as ITransaction
+                          ).sentTimestamp
+                        ).toUTCString()}
+                      </p>
+                    </>
+                  ) : notification.notificationType === "return" ? (
+                    <>
+                      <FaCircle size={8} color="#007200" />
+                      <p className="text-sm">
+                        {(notification.transaction as ITransaction).sender.name}{" "}
+                        returned{" "}
+                        {
+                          (notification.transaction as ITransaction).document
+                            .title
+                        }{" "}
+                        at{" "}
+                        {new Date(
+                          (
+                            notification.transaction as ITransaction
+                          ).sentTimestamp
+                        ).toUTCString()}
+                      </p>
+                    </>
+                  ) : notification.notificationType ===
+                    "archive_document_request" ? (
+                    <>
+                      <FaCircle size={8} color="#007200" />
+                      <p className="text-sm">
+                        {
+                          (notification.transaction as IArchiveTransaction)
+                            .requester.name
+                        }{" "}
+                        needs approval for{" "}
+                        {
+                          (notification.transaction as IArchiveTransaction)
+                            .document.title
+                        }{" "}
+                        requested at{" "}
+                        {new Date(
+                          (
+                            notification.transaction as IArchiveTransaction
+                          ).requestedAt
+                        ).toUTCString()}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <FaCircle size={8} color="#007200" />
+                      <p className="text-sm">
+                        {
+                          (notification.transaction as IArchiveTransaction)
+                            .requestApprover.name
+                        }{" "}
+                        {
+                          (notification.transaction as IArchiveTransaction)
+                            .status
+                        }{" "}
+                        request for{" "}
+                        {
+                          (notification.transaction as IArchiveTransaction)
+                            .document.title
+                        }{" "}
+                        at{" "}
+                        {new Date(
+                          (
+                            notification.transaction as IArchiveTransaction
+                          ).requestApprovedAt!
+                        ).toUTCString()}
+                      </p>
+                    </>
+                  )}
+                </Link>
               );
             })
           ) : (

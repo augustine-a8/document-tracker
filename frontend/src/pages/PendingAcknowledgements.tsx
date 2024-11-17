@@ -2,12 +2,15 @@ import { useState } from "react";
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import { PiKeyReturn } from "react-icons/pi";
 
-import { acknowledgeMultipleDocumentsApi } from "../api/history.api";
+import { acknowledgeMultipleDocumentsApi } from "../api/transaction.api";
 import { IError } from "../@types/error";
 import { useNotification } from "../hooks/useNotification";
 import { IAcknowledgement, INotification } from "../@types/notification";
 import EmptyComponent from "../components/EmptyComponent";
 import ReturnDocument from "../components/ReturnDocument";
+import { ITransaction } from "../@types/transaction";
+import { TiCancel } from "react-icons/ti";
+import { FaCheck } from "react-icons/fa";
 
 export default function PendingAcknowledgements() {
   const [acknowledgements, setAcknowledgements] = useState<IAcknowledgement[]>(
@@ -17,11 +20,11 @@ export default function PendingAcknowledgements() {
 
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  const [documentToReturn, setDocumentToReturn] =
+  const [notificationToReturn, setNotificationToReturn] =
     useState<INotification | null>(null);
   const [showReturnModal, setShowReturnModal] = useState<boolean>(false);
 
-  const { allNotifications, removeNotifications } = useNotification();
+  const { notificationQueue, removeNotifications } = useNotification();
 
   const toggleShowReturnModal = () => {
     setShowReturnModal((prev) => !prev);
@@ -31,7 +34,7 @@ export default function PendingAcknowledgements() {
     if (
       acknowledgements.some(
         (_ack) =>
-          _ack.historyId === ack.historyId &&
+          _ack.transactionId === ack.transactionId &&
           _ack.notificationId === ack.notificationId
       )
     ) {
@@ -39,7 +42,7 @@ export default function PendingAcknowledgements() {
         prev.filter(
           (item) =>
             !(
-              item.historyId === ack.historyId &&
+              item.transactionId === ack.transactionId &&
               item.notificationId === ack.notificationId
             )
         )
@@ -65,11 +68,11 @@ export default function PendingAcknowledgements() {
   };
 
   const maxItemsPerPage = 12;
-  let allItems = allNotifications.length;
+  let allItems = notificationQueue.length;
   let itemsPerPage = allItems < maxItemsPerPage ? allItems : maxItemsPerPage;
   let startIndex = (currentPage - 1) * itemsPerPage;
   let stopIndex = currentPage * itemsPerPage;
-  let currentPageItems = allNotifications.slice(
+  let currentPageItems = notificationQueue.slice(
     startIndex,
     stopIndex > allItems ? allItems : stopIndex
   );
@@ -88,7 +91,7 @@ export default function PendingAcknowledgements() {
 
   return (
     <>
-      <main>
+      <div className="h-[calc(100%-98px)]">
         {acknowledgements.length > 0 ? (
           <div className="w-full grid place-items-center mt-4">
             <button
@@ -99,7 +102,7 @@ export default function PendingAcknowledgements() {
             </button>
           </div>
         ) : undefined}
-        {allNotifications.length > 0 ? (
+        {notificationQueue.length > 0 ? (
           <>
             <div className="w-full flex flex-row items-center justify-end gap-2 text-sm text-gray-400 px-4 py-2">
               <p>
@@ -122,65 +125,61 @@ export default function PendingAcknowledgements() {
               </div>
             </div>
             <div className="w-full px-4">
-              <table className="w-full border-collapse text-sm">
-                <thead className="bg-[#023e8a] text-white">
+              <table>
+                <thead>
                   <tr>
-                    <th>
-                      # <div></div>
-                    </th>
-                    <th className="font-normal text-left p-2">Title</th>
-                    <th className="font-normal text-left p-2">Type</th>
-                    <th className="font-normal text-left p-2">Sender</th>
-                    <th className="font-normal text-left p-2">Receiver</th>
-                    <th className="font-normal text-left p-2">Sent At</th>
-                    <th className="font-normal text-left p-2">Comment</th>
-                    <th className="font-normal text-left p-2">Acknowledge</th>
-                    <th className="font-normal text-left p-2">Action</th>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Sender</th>
+                    <th>Receiver</th>
+                    <th>Sent At</th>
+                    <th>Comment</th>
+                    <th>Acknowledge</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {currentPageItems.map((item, idx) => {
                     const {
-                      historyId,
-                      history,
-                      sender,
-                      document,
-                      receiver,
+                      transactionId,
+                      transaction,
+                      notificationType,
                       notificationId,
-                      acknowledged,
                     } = item;
+                    if (
+                      notificationType === "archive_document_request" ||
+                      notificationType === "request_approval"
+                    ) {
+                      return;
+                    }
+                    const {
+                      document,
+                      sender,
+                      receiver,
+                      sentTimestamp,
+                      acknowledged,
+                    } = transaction as ITransaction;
                     return (
                       <tr
-                        key={historyId}
+                        key={transactionId}
                         className="hover:shadow-none hover:cursor-default"
                       >
-                        <td className="font-normal text-left p-2">{idx + 1}</td>
-                        <td className="font-normal text-left p-2">
-                          {document.title}
-                        </td>
-                        <td className="font-normal text-left p-2">
-                          {document.type}
-                        </td>
-                        <td className="font-normal text-left p-2">
-                          {sender.name}
-                        </td>
-                        <td className="font-normal text-left p-2">
-                          {receiver.name}
-                        </td>
-                        <td className="font-normal text-left p-2">
-                          {new Date(history.sentTimestamp).toUTCString()}
-                        </td>
-                        <td className="font-normal text-left p-2">
-                          {history.comment}
-                        </td>
-                        <td className="font-normal text-left p-2">
+                        <td>{idx + 1}</td>
+                        <td>{document.title}</td>
+                        <td>{document.type}</td>
+                        <td>{sender.name}</td>
+                        <td>{receiver.name}</td>
+                        <td>{new Date(sentTimestamp).toUTCString()}</td>
+                        <td>{transaction.comment}</td>
+                        <td>
                           <input
                             type="checkbox"
-                            name={`acknowledge-${historyId}`}
+                            name={`acknowledge-${transactionId}`}
                             id=""
                             onChange={() => {
                               toggleAcknowledgement({
-                                historyId,
+                                transactionId,
                                 notificationId,
                               });
                             }}
@@ -188,18 +187,27 @@ export default function PendingAcknowledgements() {
                             defaultChecked={acknowledged}
                           />
                         </td>
-                        <td className="font-normal text-left p-2">
-                          <button
-                            className="btn btn-solid return-btn"
-                            onClick={() => {
-                              setDocumentToReturn(item);
-                              toggleShowReturnModal();
-                            }}
-                          >
-                            <div className="w-full flex flex-row items-center gap-2">
-                              <PiKeyReturn size={18} />
-                            </div>
-                          </button>
+                        <td>
+                          {notificationType === "acknowledge" ? (
+                            <button
+                              onClick={() => {
+                                setNotificationToReturn(item);
+                                toggleShowReturnModal();
+                              }}
+                            >
+                              <div className="border border-red-600 bg-red-600 rounded-sm text-white h-7 flex items-center gap-2 px-2 hover:cursor-pointer hover:opacity-80 duration-300">
+                                <PiKeyReturn />
+                                <p>Return</p>
+                              </div>
+                            </button>
+                          ) : (
+                            <button>
+                              <div className="border border-green-600 bg-green-600 rounded-sm text-white h-7 flex items-center gap-2 px-2 hover:cursor-pointer hover:opacity-80 duration-300">
+                                <FaCheck />
+                                <p>Confirm</p>
+                              </div>
+                            </button>
+                          )}
                         </td>
                       </tr>
                     );
@@ -213,11 +221,11 @@ export default function PendingAcknowledgements() {
             <EmptyComponent message="No pending acknowledgements" />
           </div>
         )}
-      </main>
-      {showReturnModal && documentToReturn !== null ? (
+      </div>
+      {showReturnModal && notificationToReturn !== null ? (
         <ReturnDocument
           toggleShowReturnModal={toggleShowReturnModal}
-          documentToReturn={documentToReturn}
+          notificationForDocumentToReturn={notificationToReturn}
         />
       ) : undefined}
     </>

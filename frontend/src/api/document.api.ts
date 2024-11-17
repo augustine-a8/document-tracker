@@ -68,13 +68,13 @@ function sendDocumentApi(
 
 function returnDocumentApi(
   documentId: string,
-  historyId: string,
+  transactionId: string,
   notificationId: string,
   comment: string
 ) {
   const res = apiClient
     .post(`/documents/${documentId}/return`, {
-      historyId,
+      transactionId,
       notificationId,
       comment,
     })

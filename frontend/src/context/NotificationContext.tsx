@@ -2,24 +2,17 @@ import { createContext, PropsWithChildren, useState } from "react";
 import {
   IAcknowledgement,
   INotification,
-  INotificationQueue,
-  NotificationType,
+  NotificationState,
 } from "../@types/notification";
 
 interface NotificationContextType {
-  showNotificationModal: boolean;
-  toggleNotificationModal: () => void;
-  allNotifications: INotification[];
-  setAllNotifications: (n: INotification[]) => void;
-  addNotification: (n: INotification) => void;
+  notificationState: NotificationState;
+  notificationQueue: INotification[];
+  closeNotificationModal: () => void;
+  openNotificationModal: (n: INotification) => void;
   removeNotifications: (acks: IAcknowledgement[]) => void;
-  enqueueNotification: (
-    type: NotificationType,
-    notification: INotification
-  ) => void;
-  dequeueNotification: () => INotificationQueue | undefined;
-  notificationQueueLength: number;
-  notificationQueue: INotificationQueue[];
+  addToNotificationQueue: (newNotifications: INotification[]) => void;
+  enqueueNotification: (notification: INotification) => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(
@@ -27,44 +20,38 @@ const NotificationContext = createContext<NotificationContextType | undefined>(
 );
 
 function NotificationModalProvider({ children }: PropsWithChildren) {
-  const [showNotificationModal, setShowNotificationModal] =
-    useState<boolean>(false);
-  const [notificationQueue, setNotificationQueue] = useState<
-    INotificationQueue[]
-  >([]);
-  const [allNotifications, _allNotifications] = useState<INotification[]>([]);
+  const [notificationQueue, setNotificationQueue] = useState<INotification[]>(
+    []
+  );
+  const [notificationState, setNotificationState] = useState<NotificationState>(
+    { isOpen: false, notification: null }
+  );
+  const [dequeueIndex, setDequeueIndex] = useState<number>(0);
 
-  const enqueueNotification = (
-    type: NotificationType,
-    notification: INotification
-  ) => {
-    const newNotification: INotificationQueue = { type, notification };
-    setNotificationQueue((prev) => [...prev, newNotification]);
+  const addToNotificationQueue = (newNotifications: INotification[]) => {
+    setNotificationQueue(newNotifications);
   };
 
-  const dequeueNotification = () => {
-    return notificationQueue.shift();
+  const enqueueNotification = (notification: INotification) => {
+    setNotificationQueue((prev) => [...prev, notification]);
+    setNotificationState({ isOpen: true, notification });
   };
 
-  const toggleNotificationModal = () => {
-    setShowNotificationModal((prev) => !prev);
+  const openNotificationModal = (notification: INotification) => {
+    setNotificationState({ isOpen: true, notification });
   };
 
-  const setAllNotifications = (notifications: INotification[]) => {
-    _allNotifications(notifications);
-  };
-
-  const addNotification = (notification: INotification) => {
-    _allNotifications((prev) => [...prev, notification]);
+  const closeNotificationModal = () => {
+    setNotificationState({ isOpen: false, notification: null });
   };
 
   const removeNotifications = (acks: IAcknowledgement[]) => {
-    _allNotifications((prev) =>
+    setNotificationQueue((prev) =>
       prev.filter(
         (item) =>
           !acks.some(
             (ack) =>
-              ack.historyId === item.historyId &&
+              ack.transactionId === item.transactionId &&
               ack.notificationId === item.notificationId
           )
       )
@@ -74,16 +61,13 @@ function NotificationModalProvider({ children }: PropsWithChildren) {
   return (
     <NotificationContext.Provider
       value={{
-        showNotificationModal,
-        notificationQueueLength: notificationQueue.length,
-        allNotifications,
+        notificationState,
         notificationQueue,
-        toggleNotificationModal,
-        addNotification,
-        setAllNotifications,
+        openNotificationModal,
+        closeNotificationModal,
         removeNotifications,
+        addToNotificationQueue,
         enqueueNotification,
-        dequeueNotification,
       }}
     >
       {children}

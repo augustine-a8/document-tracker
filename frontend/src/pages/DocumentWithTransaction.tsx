@@ -8,27 +8,27 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getDocumentByIdApi, sendDocumentApi } from "../api/document.api";
 import { IDocument } from "../@types/document";
-import DocumentHistory from "../components/DocumentHistory";
+import DocumentTransactions from "../components/DocumentTransactions";
 import { BsFillSendFill } from "react-icons/bs";
 import SendDocument from "../components/SendDocument";
 import { getMyAccountApi } from "../api/user.api";
 import { IUser } from "../@types/user";
 import { IError } from "../@types/error";
-import { getHistoryForDocumentApi } from "../api/history.api";
-import { IHistory } from "../@types/history";
+import { getTransactionsForDocumentApi } from "../api/transaction.api";
+import { ITransaction } from "../@types/transaction";
 import LoadingComponent from "../components/LoadingComponent";
 import EmptyComponent from "../components/EmptyComponent";
 
-export default function DocumentWithHistory() {
+export default function DocumentWithTransaction() {
   const navigate = useNavigate();
   const { documentId } = useParams();
 
   const [document, setDocument] = useState<IDocument | null>(null);
   const [error, setError] = useState<IError | null>(null);
-  const [history, setHistory] = useState<IHistory[]>([]);
+  const [transactions, setTransactions] = useState<ITransaction[]>([]);
   const [historyLoading, setHistoryLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [historyError, setHistoryError] = useState<IError | null>(null);
+  const [transactionError, setTransactionError] = useState<IError | null>(null);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [me, setMe] = useState<IUser | null>(null);
   const [sendDocumentLoading, setSendDocumentLoading] =
@@ -72,14 +72,14 @@ export default function DocumentWithHistory() {
 
   useEffect(() => {
     const fetchDocumentHistory = () => {
-      getHistoryForDocumentApi(documentId!)
+      getTransactionsForDocumentApi(documentId!)
         .then((res) => {
           if (res.status === 200) {
-            setHistory(res.data.custodyHistory);
+            setTransactions(res.data.transactions);
           }
         })
         .catch((err) => {
-          setHistoryError(err);
+          setTransactionError(err);
         })
         .finally(() => {
           setHistoryLoading(false);
@@ -99,7 +99,7 @@ export default function DocumentWithHistory() {
     sendDocumentApi(documentId!, receiverId, comment)
       .then((res) => {
         if (res.status === 200) {
-          setHistory((prev) => [...prev, res.data.history]);
+          setTransactions((prev) => [...prev, res.data.transaction]);
           setDocument(res.data.document);
           toggleModal();
         } else {
@@ -114,12 +114,12 @@ export default function DocumentWithHistory() {
       });
   };
 
-  const maxItemsPerPage = 6;
-  let allItems = history.length;
+  const maxItemsPerPage = 4;
+  let allItems = transactions.length;
   let itemsPerPage = allItems < maxItemsPerPage ? allItems : maxItemsPerPage;
   let startIndex = (currentPage - 1) * itemsPerPage;
   let stopIndex = currentPage * itemsPerPage;
-  let currentPageItems = history.slice(
+  let currentPageItems = transactions.slice(
     startIndex,
     stopIndex > allItems ? allItems : stopIndex
   );
@@ -138,7 +138,7 @@ export default function DocumentWithHistory() {
 
   return (
     <>
-      <main className="flex flex-col">
+      <div className="w-full flex flex-col">
         <div className="w-full px-4 mt-2" onClick={goBack}>
           <button className="w-fit flex flex-row gap-2 items-center text-sm text-[#023e8a] hover:underline">
             <MdOutlineArrowBackIosNew />
@@ -217,17 +217,21 @@ export default function DocumentWithHistory() {
                   </div>
                 </div>
                 <div className="w-fill px-4">
-                  <DocumentHistory history={currentPageItems} />
+                  <DocumentTransactions
+                    transactions={currentPageItems}
+                    currentPage={currentPage}
+                    maxItemsPerPage={maxItemsPerPage}
+                  />
                 </div>
               </>
             ) : (
               <div className="flex flex-1 mx-4 items-center justify-center border rounded-md">
-                <EmptyComponent message="No transfer history for document" />
+                <EmptyComponent message="No transactions for document" />
               </div>
             )}
           </>
         )}
-      </main>
+      </div>
       {showModal ? (
         <SendDocument
           toggleModal={toggleModal}

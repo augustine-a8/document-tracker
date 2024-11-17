@@ -1,161 +1,76 @@
-import { useState, useEffect } from "react";
-import { CiSearch } from "react-icons/ci";
+import { useEffect } from "react";
+import { NavLink, Outlet } from "react-router-dom";
+import { MdOutlinePendingActions } from "react-icons/md";
+import { FaRegFileAlt } from "react-icons/fa";
 
-import AddNewDocument from "../components/AddNewDocument";
-import { addDocumentApi, getAllDocumentsApi } from "../api/document.api";
-import { useAuth } from "../hooks/useAuth";
-import { IDocument } from "../@types/document";
-import { IError } from "../@types/error";
-import EmptyComponent from "../components/EmptyComponent";
-import LoadingComponent from "../components/LoadingComponent";
-import AllDocumentsTable from "../components/AllDocumentsTable";
-import { IoMdAdd } from "react-icons/io";
+import { useSocket } from "../hooks/useSocket";
+import { useNotification } from "../hooks/useNotification";
 
 export default function Document() {
-  const [showModal, setShowModal] = useState<boolean>(false);
-  const [allDocuments, setAllDocuments] = useState<IDocument[]>([]);
-  const [filteredDocuments, setFilteredDocuments] = useState<IDocument[]>([]);
-  const [allDocumentsLoading, setAllDocumentsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<IError | null>(null);
-  const [search, setSearch] = useState<string>("");
-
-  const [addNewDocumentLoading, setAddNewDocumentLoading] =
-    useState<boolean>(false);
-  const [addNewDocumentError, setAddNewDocumentError] = useState<IError | null>(
-    null
-  );
+  const socket = useSocket();
+  const { enqueueNotification } = useNotification();
 
   useEffect(() => {
-    const setDocumentScrolling = () => {
-      if (showModal) {
-        document.body.style.overflow = "hidden";
-      } else {
-        document.body.style.overflow = "auto";
+    socket.on("acknowledge_document", (data) => {
+      console.log("Received acknowledge_document event from socket server");
+      if (data) {
+        console.log({ data });
+        enqueueNotification(data);
       }
-    };
-
-    setDocumentScrolling();
+    });
 
     return () => {
-      document.body.style.overflow = "auto";
+      socket.off("acknowledge_document");
     };
-  }, [showModal]);
+  }, [socket]);
 
   useEffect(() => {
-    const fetchAllDocuments = () => {
-      setAllDocumentsLoading(true);
-      getAllDocumentsApi()
-        .then((res) => {
-          if (res.status === 200) {
-            setAllDocuments(res.data.allDocuments);
-            setFilteredDocuments(res.data.allDocuments);
-          }
-        })
-        .catch((err) => {
-          setError(err);
-        })
-        .finally(() => {
-          setAllDocumentsLoading(false);
-        });
+    socket.on("return_document", (data) => {
+      console.log("Received return_documet event from socket server");
+      if (data) {
+        console.log({ data });
+        enqueueNotification(data);
+      }
+    });
+
+    return () => {
+      socket.off("return_document");
     };
-
-    fetchAllDocuments();
-  }, []);
-
-  const toggleModal = () => {
-    setShowModal((prev) => !prev);
-  };
-
-  const addNewDocument = (
-    serialNumber: string,
-    title: string,
-    description: string,
-    type: string
-  ) => {
-    setAddNewDocumentLoading(true);
-    setAddNewDocumentError(null);
-    addDocumentApi({ serialNumber, title, description, type })
-      .then((res) => {
-        if (res.status === 200) {
-          toggleModal();
-          setAllDocuments((prev) => [...prev, res.data.newDocument]);
-          setFilteredDocuments((prev) => [...prev, res.data.newDocument]);
-        } else {
-          setAddNewDocumentError(res as IError);
-        }
-      })
-      .catch((err) => {
-        setAddNewDocumentError(err);
-      })
-      .finally(() => {
-        setAddNewDocumentLoading(false);
-      });
-  };
+  }, [socket]);
 
   return (
     <>
       <main>
-        <div className="w-full flex flex-row items-center justify-between px-4 py-2 border-b">
-          <div className="hidden md:block">
-            <button
-              className="border border-[#023e8a] w-32 h-8 rounded-md text-[#023e8a] hover:bg-[#023e8a] hover:text-white ease-in-out duration-300"
-              onClick={toggleModal}
-            >
-              <p className="text-sm">Add Document</p>
-            </button>
-          </div>
-          <div className="block md:hidden">
-            <button
-              className="border border-[#023e8a] bg-[#023e8a] text-white w-8 h-8 grid place-items-center rounded-md"
-              onClick={toggleModal}
-            >
-              <p className="text-sm text-white">
-                <IoMdAdd />
-              </p>
-            </button>
-          </div>
-          <div className="flex flex-row items-center border rounded-md px-2 text-gray-500 h-8">
-            <input
-              type="text"
-              placeholder="Search for document..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setFilteredDocuments(
-                  allDocuments.filter(
-                    (document) =>
-                      document.title
-                        .toLowerCase()
-                        .includes(e.target.value.toLowerCase()) ||
-                      document.serialNumber.includes(e.target.value)
-                  )
-                );
-              }}
-              className="flex-1 outline-none border-none text-sm"
-            />
-            <CiSearch />
-          </div>
+        <div className="flex flex-row gap-4 border-b px-4 text-sm text-gray-600 h-14">
+          <NavLink
+            to=""
+            className={({ isActive }) => (isActive ? "active-link" : "link")}
+            end
+          >
+            <div className="tab">
+              <div className="tab-label">
+                <FaRegFileAlt />
+                <p>All Documents</p>
+              </div>
+              <div className="tab-indicator"></div>
+            </div>
+          </NavLink>
+          <NavLink
+            to="/documents/acknowledgements"
+            className={({ isActive }) => (isActive ? "active-link" : "link")}
+            end
+          >
+            <div className="tab">
+              <div className="tab-label">
+                <MdOutlinePendingActions />
+                <p>Acknowledgements</p>
+              </div>
+              <div className="tab-indicator"></div>
+            </div>
+          </NavLink>
         </div>
-        {allDocumentsLoading ? (
-          <div className="grid place-items-center h-[calc(100%-58px)]">
-            <LoadingComponent isLoading={allDocumentsLoading} />
-          </div>
-        ) : allDocuments.length > 0 ? (
-          <AllDocumentsTable allDocuments={filteredDocuments} />
-        ) : !allDocumentsLoading ? (
-          <div className="grid place-items-center h-full">
-            <EmptyComponent message="No documents here yet" />
-          </div>
-        ) : undefined}
+        <Outlet />
       </main>
-      {showModal ? (
-        <AddNewDocument
-          toggleModal={toggleModal}
-          addNewDocument={addNewDocument}
-          addNewDocumentLoading={addNewDocumentLoading}
-          addNewDocumentError={addNewDocumentError}
-        />
-      ) : undefined}
     </>
   );
 }

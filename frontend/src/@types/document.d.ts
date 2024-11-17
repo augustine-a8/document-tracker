@@ -1,4 +1,4 @@
-import { IHistory } from "./history";
+import { ITransaction } from "./transaction";
 import { IUser } from "./user";
 
 export interface IDocument {
@@ -8,7 +8,7 @@ export interface IDocument {
   type: string;
   currentHolderId: string | null;
   currentHolder: IUser | null;
-  custodyHistories: IHistory[];
+  transactions: ITransaction[];
   description: string;
   creatorId: string;
   creator: IUser;
@@ -19,4 +19,14 @@ export interface INewDocument {
   title: string;
   description: string;
   type: string;
+}
+
+export interface IArchiveDocument {
+  documentId: string;
+  title: string;
+  serialNumber: string;
+  type: string;
+  currentHolderId: string | null;
+  currentHolder: IUser | null;
+  location: string;
 }

@@ -2,9 +2,9 @@ import { AxiosError } from "axios";
 
 import { apiClient } from "./config";
 
-function getAllCustodyHistoryApi() {
+function getAllTransactions() {
   const res = apiClient
-    .get("/history")
+    .get("/transactions")
     .then((res) => {
       return { status: res.status, data: res.data };
     })
@@ -17,9 +17,9 @@ function getAllCustodyHistoryApi() {
   return res;
 }
 
-function getHistoryForDocumentApi(documentId: string) {
+function getTransactionsForDocumentApi(documentId: string) {
   const res = apiClient
-    .get(`/history/${documentId}`)
+    .get(`/transactions/${documentId}`)
     .then((res) => {
       return { status: res.status, data: res.data };
     })
@@ -29,9 +29,9 @@ function getHistoryForDocumentApi(documentId: string) {
   return res;
 }
 
-function acknowledgeDocumentApi(historyId: string, notificationId: string) {
+function acknowledgeDocumentApi(transactionId: string, notificationId: string) {
   const res = apiClient
-    .post(`/history/${historyId}/acknowledge`, {
+    .post(`/transactions/${transactionId}/acknowledge`, {
       notificationId,
     })
     .then((res) => {
@@ -45,10 +45,10 @@ function acknowledgeDocumentApi(historyId: string, notificationId: string) {
 }
 
 function acknowledgeMultipleDocumentsApi(
-  acknowledgements: { historyId: string; notificationId: string }[]
+  acknowledgements: { transactionId: string; notificationId: string }[]
 ) {
   const res = apiClient
-    .post("/history/acknowledge", {
+    .post("/transactions/acknowledge", {
       acknowledgements,
     })
     .then((res) => {
@@ -62,8 +62,8 @@ function acknowledgeMultipleDocumentsApi(
 }
 
 export {
-  getAllCustodyHistoryApi,
-  getHistoryForDocumentApi,
+  getAllTransactions,
+  getTransactionsForDocumentApi,
   acknowledgeDocumentApi,
   acknowledgeMultipleDocumentsApi,
 };

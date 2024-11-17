@@ -1,28 +1,25 @@
-import { IDocument } from "./document";
-import { IHistory } from "./history";
+import { IArchiveDocument, IDocument } from "./document";
+import { IArchiveTransaction, ITransaction } from "./transaction";
 import { IUser } from "./user";
+
+export type NotificationType =
+  | "acknowledge"
+  | "return"
+  | "request_approval"
+  | "archive_document_request";
 
 export interface INotification {
   notificationId: string;
-  historyId: string;
-  history: IHistory;
-  documentId: string;
-  document: IDocument;
-  acknowledged: boolean;
-  senderId: string;
-  sender: IUser;
-  receiverId: string;
-  receiver: IUser;
+  transactionId: string;
+  notificationType: NotificationType;
+  transaction: ITransaction | IArchiveTransaction;
 }
 
 export interface IAcknowledgement {
-  historyId: string;
+  transactionId: string;
   notificationId: string;
 }
 
-export type NotificationType = "acknowledge" | "return";
-
-export interface INotificationQueue {
-  type: NotificationType;
-  notification: INotification;
-}
+export type NotificationState =
+  | { isOpen: false; notification: null }
+  | { isOpen: true; notification: INotification };
