@@ -4,10 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { loginApi } from "../api/auth.api";
 import { useAuth } from "../hooks/useAuth";
 
-interface LoginProps {
-  onLogin: (email: string, password: string) => void;
-}
-
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,7 +21,7 @@ export default function Login() {
     loginApi(email, password)
       .then((res) => {
         if (res.status === 200) {
-          login();
+          login(res.data.user);
         }
       })
       .catch((err) => {

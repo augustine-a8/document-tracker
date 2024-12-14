@@ -1,60 +1,77 @@
 import { Router } from "express";
 
 import {
-  acceptRequestForArchivedDocument,
-  approveRequestForArchivedDocument,
-  getAllArchivedDocumentRequest,
-  getAllArchivedDocuments,
-  getArchivedDocumentById,
-  requestForArchivedDocument,
-  addArchivedDocument,
-  getAllUserRequestsForDocument,
-  getApprovedRequestsPendingArchiverAcceptance,
-  getRequestsPendingHODApproval,
+  addToArchive,
+  approveRequestForArchiveDocument,
+  fulfillRequestForArchiveDocument,
+  getAllArchiveDocumentRequestsAwaitingApproval,
+  getAllArchiveDocumentRequestsAwaitingFulfillment,
+  getAllArchiveDocuments,
+  getAllUserArchiveDocumentRequest,
+  getArchiveDocumentById,
+  requestForArchiveDocument,
+  returnArchiveDocument,
 } from "../controllers/archive.controller";
 import { Endpoint } from "../@types/endpoint";
 import { asyncHandler } from "../lib/async-wrapper";
 import { checkAuthentication } from "../middleware/check-auth";
+import {
+  addToArchiveSchema,
+  approveRequestForArchiveDocumentSchema,
+  fulfillRequestForArchiveDocumentSchema,
+  requestForArchiveDocumentSchema,
+  returnArchiveDocumentSchema,
+} from "../validations/archive.validation";
+import { validateRequest } from "../middleware/validateRequest";
 
 const router = Router();
 
-router.post("/", checkAuthentication, addArchivedDocument);
-router.get("/", checkAuthentication, asyncHandler(getAllArchivedDocuments));
+router.post(
+  "/",
+  checkAuthentication,
+  validateRequest(addToArchiveSchema),
+  asyncHandler(addToArchive)
+);
+router.get("/", checkAuthentication, asyncHandler(getAllArchiveDocuments));
 router.get(
   "/requests",
   checkAuthentication,
-  asyncHandler(getAllArchivedDocumentRequest)
+  asyncHandler(getAllUserArchiveDocumentRequest)
 );
 router.get(
-  "/requests/hod",
+  "/requests/approve",
   checkAuthentication,
-  asyncHandler(getRequestsPendingHODApproval)
+  asyncHandler(getAllArchiveDocumentRequestsAwaitingApproval)
 );
 router.get(
-  "/requests/archiver",
+  "/requests/fulfill",
   checkAuthentication,
-  asyncHandler(getApprovedRequestsPendingArchiverAcceptance)
+  asyncHandler(getAllArchiveDocumentRequestsAwaitingFulfillment)
 );
-router.get("/:id", checkAuthentication, asyncHandler(getArchivedDocumentById));
+router.post(
+  "/requests/approve",
+  checkAuthentication,
+  validateRequest(approveRequestForArchiveDocumentSchema),
+  asyncHandler(approveRequestForArchiveDocument)
+);
+router.post(
+  "/requests/fulfill",
+  checkAuthentication,
+  validateRequest(fulfillRequestForArchiveDocumentSchema),
+  asyncHandler(fulfillRequestForArchiveDocument)
+);
+router.get("/:id", checkAuthentication, asyncHandler(getArchiveDocumentById));
 router.post(
   "/requests/:id",
   checkAuthentication,
-  asyncHandler(requestForArchivedDocument)
-);
-router.get(
-  "/requests/:id",
-  checkAuthentication,
-  asyncHandler(getAllUserRequestsForDocument)
+  validateRequest(requestForArchiveDocumentSchema),
+  asyncHandler(requestForArchiveDocument)
 );
 router.post(
-  "/requests/:id/approve",
+  "/:id/return",
   checkAuthentication,
-  asyncHandler(approveRequestForArchivedDocument)
-);
-router.post(
-  "/requests/accept",
-  checkAuthentication,
-  asyncHandler(acceptRequestForArchivedDocument)
+  validateRequest(returnArchiveDocumentSchema),
+  asyncHandler(returnArchiveDocument)
 );
 
 const archiveEndpoint: Endpoint = {

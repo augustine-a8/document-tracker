@@ -1,20 +1,22 @@
 import { Express } from "express";
 
 import { Endpoint } from "../@types/endpoint";
-import { transactionEndpoint } from "./transaction.route";
 import { usersEndpoint } from "./user.route";
-import { documentEndpoint } from "./document.route";
 import { authEndpoint } from "./auth.route";
 import { notificationEndpoint } from "./notification.route";
 import { archiveEndpoint } from "./archive.route";
+import { mailEndpoint } from "./mail.route";
+import { activeDocEndpoint } from "./activeDoc.route";
+import { newActiveDocEndpoint } from "./activeDoc.new.route";
 
 const endpoints: Endpoint[] = [
-  transactionEndpoint,
   usersEndpoint,
-  documentEndpoint,
   authEndpoint,
-  notificationEndpoint,
+  activeDocEndpoint,
+  newActiveDocEndpoint,
   archiveEndpoint,
+  mailEndpoint,
+  notificationEndpoint,
 ];
 
 function createRoutes(app: Express) {

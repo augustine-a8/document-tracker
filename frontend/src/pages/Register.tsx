@@ -27,7 +27,7 @@ export default function Register() {
     registerApi(email, name, password)
       .then((res) => {
         if (res.status === 200) {
-          login(res.data.token);
+          login(res.data.user);
         }
       })
       .catch((err) => {

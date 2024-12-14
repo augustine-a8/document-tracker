@@ -1,14 +1,5 @@
 import { DataSource } from "typeorm";
-
-import {
-  User,
-  Document,
-  Transaction,
-  ArchiveDocument,
-  ArchiveTransaction,
-} from "./entity";
 import { Config } from "./config";
-import { ArchiveNotification, Notification } from "./entity/Notification";
 
 const {
   database_host,
@@ -26,14 +17,6 @@ export const AppDataSource = new DataSource({
   password: database_password,
   database: database_name,
   synchronize: true,
-  logging: false,
-  entities: [
-    User,
-    Document,
-    Transaction,
-    Notification,
-    ArchiveDocument,
-    ArchiveNotification,
-    ArchiveTransaction,
-  ],
+  logging: ["query", "error"],
+  entities: [__dirname + "/entities/*.{js,ts}"],
 });

@@ -1,9 +1,10 @@
 import { AxiosError } from "axios";
 import { apiClient } from "./config";
+import { INewArchive } from "../@types/archive";
 
-async function getAllArchivedDocumentsApi() {
+async function addToArchiveApi(newArchive: INewArchive) {
   const res = apiClient
-    .get("/archives/")
+    .post("/archives/", { ...newArchive })
     .then((res) => {
       return { status: res.status, data: res.data };
     })
@@ -14,29 +15,13 @@ async function getAllArchivedDocumentsApi() {
   return res;
 }
 
-async function getArchivedDocumentByIdApi(archiveDocumentId: string) {
-  const res = apiClient
-    .get(`archives/${archiveDocumentId}`)
-    .then((res) => {
-      return { status: res.status, data: res.data };
-    })
-    .catch((err: AxiosError) => {
-      return { status: err.response?.status, data: err.response?.data };
-    });
-
-  return res;
-}
-
-async function requestForArchivedDocumentApi(
-  archiveDocumentId: string,
-  requestApproverId: string,
-  comment: string
+async function getAllArchiveDocumentsApi(
+  start: number,
+  limit: number,
+  search: string
 ) {
   const res = apiClient
-    .post(`archives/requests/${archiveDocumentId}`, {
-      requestApproverId,
-      comment,
-    })
+    .get(`/archives/?start=${start}&limit=${limit}&search=${search}`)
     .then((res) => {
       return { status: res.status, data: res.data };
     })
@@ -47,65 +32,105 @@ async function requestForArchivedDocumentApi(
   return res;
 }
 
-async function getAllArchiveRequestsApi() {
-  const res = apiClient
-    .get("archives/requests")
-    .then((res) => {
-      return { status: res.status, data: res.data };
-    })
-    .catch((err: AxiosError) => {
-      return { status: err.response?.status, data: err.response?.data };
-    });
-
-  return res;
-}
-
-async function getAllUserRequestsForDocumentApi(documentId: string) {
-  const res = apiClient
-    .get(`archives/requests/${documentId}`)
-    .then((res) => {
-      return { status: res.status, data: res.data };
-    })
-    .catch((err: AxiosError) => {
-      return { status: err.response?.status, data: err.response?.data };
-    });
-
-  return res;
-}
-
-async function getRequestsPendingHODApprovalApi() {
-  const res = apiClient
-    .get("/archives/requests/hod")
-    .then((res) => {
-      return { status: res.status, data: res.data };
-    })
-    .catch((err: AxiosError) => {
-      return { status: err.response?.status, data: err.response?.data };
-    });
-
-  return res;
-}
-
-async function getApprovedRequestsPendingAcceptanceApi() {
-  const res = apiClient
-    .get("/archives/requests/archiver")
-    .then((res) => {
-      return { status: res.status, data: res.data };
-    })
-    .catch((err: AxiosError) => {
-      return { status: err.response?.status, data: err.response?.data };
-    });
-
-  return res;
-}
-
-// For HOD
-async function approveRequestForArchiveDocumentApi(
-  transactionId: string,
-  approveRequest: boolean
+async function getAllUserArchiveDocumentRequestApi(
+  start: number,
+  limit: number,
+  search: string
 ) {
   const res = apiClient
-    .post(`/archives/requests/${transactionId}/approve`, { approveRequest })
+    .get(`/archives/requests/?start=${start}&limit=${limit}&search=${search}`)
+    .then((res) => {
+      return { status: res.status, data: res.data };
+    })
+    .catch((err: AxiosError) => {
+      return { status: err.response?.status, data: err.response?.data };
+    });
+
+  return res;
+}
+
+async function getAllArchiveDocumentRequestsAwaitingApprovalApi(
+  start: number,
+  limit: number,
+  search: string
+) {
+  const res = apiClient
+    .get(
+      `/archives/requests/approve/?start=${start}&limit=${limit}&search=${search}`
+    )
+    .then((res) => {
+      return { status: res.status, data: res.data };
+    })
+    .catch((err: AxiosError) => {
+      return { status: err.response?.status, data: err.response?.data };
+    });
+
+  return res;
+}
+
+async function getAllArchiveDocumentRequestsAwaitingFulfillmentApi(
+  start: number,
+  limit: number,
+  search: string
+) {
+  const res = apiClient
+    .get(
+      `/archives/requests/fulfill/?start=${start}&limit=${limit}&search=${search}`
+    )
+    .then((res) => {
+      return { status: res.status, data: res.data };
+    })
+    .catch((err: AxiosError) => {
+      return { status: err.response?.status, data: err.response?.data };
+    });
+
+  return res;
+}
+
+async function getArchiveDocumentByIdApi(id: string) {
+  const res = apiClient
+    .get(`/archives/${id}`)
+    .then((res) => {
+      return { status: res.status, data: res.data };
+    })
+    .catch((err: AxiosError) => {
+      return { status: err.response?.status, data: err.response?.data };
+    });
+
+  return res;
+}
+
+async function requestForArchiveDocumentApi(id: string, department: string) {
+  const res = apiClient
+    .post(`/archives/requests/${id}`, { department })
+    .then((res) => {
+      return { status: res.status, data: res.data };
+    })
+    .catch((err: AxiosError) => {
+      return { status: err.response?.status, data: err.response?.data };
+    });
+
+  return res;
+}
+
+async function approveRequestForArchiveDocumentApi(transactionIds: string[]) {
+  const res = apiClient
+    .post(`/archives/requests/approve`, { transactionIds })
+    .then((res) => {
+      return { status: res.status, data: res.data };
+    })
+    .catch((err: AxiosError) => {
+      return { status: err.response?.status, data: err.response?.data };
+    });
+
+  return res;
+}
+
+async function fulfillRequestForArchiveDocumentApi(transactionIds: string[]) {
+  const res = apiClient
+    .post("/archives/requests/fulfill", {
+      transactionIds,
+    })
     .then((res) => {
       return { status: res.status, data: res.data };
     })
@@ -117,12 +142,13 @@ async function approveRequestForArchiveDocumentApi(
 }
 
 export {
-  getAllArchivedDocumentsApi,
-  getArchivedDocumentByIdApi,
-  requestForArchivedDocumentApi,
-  getAllArchiveRequestsApi,
-  getAllUserRequestsForDocumentApi,
-  getRequestsPendingHODApprovalApi,
-  getApprovedRequestsPendingAcceptanceApi,
+  addToArchiveApi,
   approveRequestForArchiveDocumentApi,
+  fulfillRequestForArchiveDocumentApi,
+  getAllArchiveDocumentRequestsAwaitingApprovalApi,
+  getAllArchiveDocumentRequestsAwaitingFulfillmentApi,
+  getAllArchiveDocumentsApi,
+  getAllUserArchiveDocumentRequestApi,
+  getArchiveDocumentByIdApi,
+  requestForArchiveDocumentApi,
 };

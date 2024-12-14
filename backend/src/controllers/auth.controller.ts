@@ -3,29 +3,17 @@ import { v4 as uuidv4 } from "uuid";
 import jwt from "jsonwebtoken";
 
 import { AppDataSource } from "../data-source";
-import { User } from "../entity";
+import { User } from "../entities";
 import { hashPassword, verifyPassword } from "../lib/password";
 import { generateToken, generateRefreshToken } from "../lib/jwt";
 import { AuthRequest } from "../@types/authRequest";
 import { Config } from "../config";
+import { IAuthUser } from "../@types/auth";
 
 const UserRepository = AppDataSource.getRepository(User);
 
 async function login(req: Request, res: Response) {
   const { email, password } = req.body;
-
-  if (!email) {
-    res.status(400).json({
-      message: "Email must be provided",
-    });
-    return;
-  }
-  if (!password) {
-    res.status(400).json({
-      message: "Password must be provided",
-    });
-    return;
-  }
 
   const user = await UserRepository.findOneBy({ email });
   if (!user) {
@@ -42,7 +30,15 @@ async function login(req: Request, res: Response) {
     return;
   }
 
-  const accessToken = generateToken(user.userId, user.email, user.role);
+  const authUser: IAuthUser = {
+    userId: user.userId,
+    name: user.name,
+    email: user.email,
+    department: user.department,
+    role: user.role,
+  };
+
+  const accessToken = generateToken(authUser);
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
     secure: true,
@@ -50,7 +46,7 @@ async function login(req: Request, res: Response) {
     maxAge: 120 * 60 * 1000, // expires in 2hr
   });
 
-  const refreshToken = generateRefreshToken(user.userId, user.email, user.role);
+  const refreshToken = generateRefreshToken(authUser);
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: true,
@@ -58,32 +54,16 @@ async function login(req: Request, res: Response) {
     maxAge: 7 * 24 * 60 * 60 * 1000, // expires in 7d
   });
 
+  const { password: p, ...userWithoutPassword } = user;
+
   res.status(200).json({
     message: "Login successful",
+    user: userWithoutPassword,
   });
 }
 
 async function register(req: Request, res: Response) {
-  const { name, email, password, role } = req.body;
-
-  if (!email) {
-    res.status(400).json({
-      message: "Email must be provided",
-    });
-    return;
-  }
-  if (!password) {
-    res.status(400).json({
-      message: "Password must be provided",
-    });
-    return;
-  }
-  if (!name) {
-    res.status(400).json({
-      message: "Name must be provided",
-    });
-    return;
-  }
+  const { name, email, password, department, role } = req.body;
 
   const existingUser = await UserRepository.findOneBy({ email });
   if (existingUser) {
@@ -98,16 +78,20 @@ async function register(req: Request, res: Response) {
   user.name = name;
   user.email = email;
   user.password = hashPassword(password);
+  user.department = department;
   if (role) {
     user.role = role;
   }
 
   const savedUser = await UserRepository.save(user);
-  const accessToken = generateToken(
-    savedUser.userId,
-    savedUser.email,
-    savedUser.role
-  );
+  const authUser: IAuthUser = {
+    userId: savedUser.userId,
+    name: savedUser.name,
+    email: savedUser.email,
+    department: savedUser.department,
+    role: savedUser.role,
+  };
+  const accessToken = generateToken(authUser);
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
     secure: true,
@@ -115,11 +99,7 @@ async function register(req: Request, res: Response) {
     maxAge: 120 * 60 * 1000, // expires in 2hr
   });
 
-  const refreshToken = generateRefreshToken(
-    savedUser.userId,
-    savedUser.email,
-    savedUser.role
-  );
+  const refreshToken = generateRefreshToken(authUser);
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: true,
@@ -127,8 +107,11 @@ async function register(req: Request, res: Response) {
     maxAge: 7 * 24 * 60 * 60 * 1000, // expires in 7d
   });
 
+  const { password: p, ...userWithoutPassword } = user;
+
   res.status(200).json({
-    message: "Registration successful",
+    message: "Register successful",
+    user: userWithoutPassword,
   });
 }
 
@@ -154,7 +137,7 @@ async function refreshToken(req: Request, res: Response) {
   jwt.verify(refreshToken, Config.refreshTokenSecret, (err: any, user: any) => {
     if (err) return res.status(403).json({ message: "Invalid refresh token" });
 
-    const newAccessToken = generateToken(user.userId, user.email, user.role);
+    const newAccessToken = generateToken(user as IAuthUser);
 
     res.cookie("accessToken", newAccessToken, {
       httpOnly: true,

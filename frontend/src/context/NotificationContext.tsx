@@ -1,18 +1,29 @@
-import { createContext, PropsWithChildren, useState } from "react";
+import { createContext, PropsWithChildren, useEffect, useState } from "react";
 import {
   IAcknowledgement,
   INotification,
   NotificationState,
 } from "../@types/notification";
+import { IActiveDocNotification } from "../@types/activeDocNotification";
+import { IArchiveNotification } from "../@types/archiveNotification";
 
 interface NotificationContextType {
   notificationState: NotificationState;
   notificationQueue: INotification[];
+  activeDocNotifications: IActiveDocNotification[];
+  archiveNotifications: IArchiveNotification[];
   closeNotificationModal: () => void;
   openNotificationModal: (n: INotification) => void;
   removeNotifications: (acks: IAcknowledgement[]) => void;
   addToNotificationQueue: (newNotifications: INotification[]) => void;
   enqueueNotification: (notification: INotification) => void;
+  total: number;
+  setActiveDocNotifications: React.Dispatch<
+    React.SetStateAction<IActiveDocNotification[]>
+  >;
+  setArchiveNotifications: React.Dispatch<
+    React.SetStateAction<IArchiveNotification[]>
+  >;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(
@@ -26,14 +37,19 @@ function NotificationModalProvider({ children }: PropsWithChildren) {
   const [notificationState, setNotificationState] = useState<NotificationState>(
     { isOpen: false, notification: null }
   );
-  const [dequeueIndex, setDequeueIndex] = useState<number>(0);
+  const [total, setTotal] = useState<number>(0);
+  const [activeDocNotifications, setActiveDocNotifications] = useState<
+    IActiveDocNotification[]
+  >([]);
+  const [archiveNotifications, setArchiveNotifications] = useState<
+    IArchiveNotification[]
+  >([]);
 
   const addToNotificationQueue = (newNotifications: INotification[]) => {
     setNotificationQueue(newNotifications);
   };
 
   const enqueueNotification = (notification: INotification) => {
-    setNotificationQueue((prev) => [...prev, notification]);
     setNotificationState({ isOpen: true, notification });
   };
 
@@ -58,16 +74,32 @@ function NotificationModalProvider({ children }: PropsWithChildren) {
     );
   };
 
+  useEffect(() => {
+    const updateTotal = () => {
+      const totalActiveDocNotifications = activeDocNotifications.length;
+      const totalArchiveNotifications = archiveNotifications.length;
+
+      setTotal(totalActiveDocNotifications + totalArchiveNotifications);
+    };
+
+    updateTotal();
+  }, [activeDocNotifications, archiveNotifications]);
+
   return (
     <NotificationContext.Provider
       value={{
         notificationState,
         notificationQueue,
+        total,
+        activeDocNotifications,
+        archiveNotifications,
         openNotificationModal,
         closeNotificationModal,
         removeNotifications,
         addToNotificationQueue,
         enqueueNotification,
+        setActiveDocNotifications,
+        setArchiveNotifications,
       }}
     >
       {children}

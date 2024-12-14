@@ -13,7 +13,6 @@ export const AuthContext = createContext<AuthContextType | undefined>(
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
-  const [me, setMe] = useState<IUser>();
 
   useEffect(() => {
     const storedAuth = localStorage.getItem("auth");
@@ -24,21 +23,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = () => {
+  const login = (user: IUser) => {
     setIsAuthenticated(true);
     const auth = {
       isAuthenticated: true,
+      user,
     };
     localStorage.setItem("auth", JSON.stringify(auth));
+  };
+
+  const getMyAccount = () => {
+    const auth = localStorage.getItem("auth");
+    if (auth === null) {
+      console.log("Not auth item in local storage");
+      return;
+    }
+    const user: IUser = JSON.parse(auth).user;
+    return user;
   };
 
   const logout = () => {
     setIsAuthenticated(false);
     localStorage.removeItem("auth");
-  };
-
-  const setMyAccount = (myAccount: IUser) => {
-    setMe(myAccount);
   };
 
   if (loading) {
@@ -47,7 +53,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, login, logout, myAccount: me, setMyAccount }}
+      value={{ isAuthenticated, login, logout, getMyAccount }}
     >
       {children}
     </AuthContext.Provider>

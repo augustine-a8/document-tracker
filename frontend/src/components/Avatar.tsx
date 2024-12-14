@@ -1,8 +1,5 @@
-import { useEffect, useState } from "react";
 import { FaUser } from "react-icons/fa";
 import { MdLogout } from "react-icons/md";
-import { IUser } from "../@types/user";
-import { getMyAccountApi } from "../api/user.api";
 import { useAuth } from "../hooks/useAuth";
 
 interface AvatarProps {
@@ -18,7 +15,8 @@ export default function Avatar({
   toggleAvatarDropdown,
   handleLogout,
 }: AvatarProps) {
-  const { myAccount } = useAuth();
+  const { getMyAccount } = useAuth();
+  const myAccount = getMyAccount();
   return (
     <div className="relative">
       <button onClick={toggleAvatarDropdown}>

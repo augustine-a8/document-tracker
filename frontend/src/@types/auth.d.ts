@@ -1,7 +1,8 @@
+import { IUser } from "./user";
+
 export interface AuthContextType {
   isAuthenticated: boolean;
-  login: () => void;
+  login: (u: IUser) => void;
   logout: () => void;
-  myAccount: IUser;
-  setMyAccount: (me: IUser) => void;
+  getMyAccount: () => IUser | undefined;
 }

@@ -2,385 +2,537 @@ import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 
 import { AuthRequest } from "../@types/authRequest";
-import { AppDataSource } from "../data-source";
 import {
-  ArchiveDocument,
+  Archive,
   ArchiveNotification,
   ArchiveTransaction,
   User,
-} from "../entity";
+} from "../entities";
+import { AppDataSource } from "../data-source";
 import { SocketService } from "../services/SocketService";
+import { ILike } from "typeorm";
+import { NotificationEvent } from "../@types/notification";
 
-const ArchiveDocumentRepository = AppDataSource.getRepository(ArchiveDocument);
+const ArchiveRepository = AppDataSource.getRepository(Archive);
 const ArchiveTransactionRepository =
   AppDataSource.getRepository(ArchiveTransaction);
-const ArchiveNotificationRepository =
-  AppDataSource.getRepository(ArchiveNotification);
+const NotificationRepository = AppDataSource.getRepository(ArchiveNotification);
+const UserRepository = AppDataSource.getRepository(User);
 
-async function addArchivedDocument(req: AuthRequest, res: Response) {
-  const { title, location, type, serialNumber } = req.body;
+async function addToArchive(req: AuthRequest, res: Response) {
+  const { itemNumber, description, remarks, coveringDate, fileNumber } =
+    req.body;
 
-  if (!title || !location || !type || !serialNumber) {
-    res.status(400).json({
-      message: "Request props not complete",
+  const user = req.user;
+
+  if (user?.role !== "archiver") {
+    res.status(403).json({
+      message: "Unauthorized",
     });
     return;
   }
 
-  const archiveDocument = new ArchiveDocument();
-  archiveDocument.documentId = uuidv4();
-  archiveDocument.title = title;
-  archiveDocument.type = type;
-  archiveDocument.serialNumber = serialNumber;
-  archiveDocument.location = location;
-
-  const newArchiveDocument = await ArchiveDocumentRepository.save(
-    archiveDocument
-  );
+  const archive = new Archive();
+  archive.archiveId = uuidv4();
+  archive.itemNumber = itemNumber;
+  archive.description = description;
+  archive.remarks = remarks;
+  archive.coveringDate = coveringDate;
+  archive.fileNumber = fileNumber;
+  const savedArchive = await ArchiveRepository.save(archive);
 
   res.status(200).json({
-    message: "New archive document added",
-    archiveDocument: newArchiveDocument,
+    message: "New archive added",
+    archive: savedArchive,
   });
 }
 
-async function getAllArchivedDocuments(req: Request, res: Response) {
-  const allArchivedDocuments = await ArchiveDocument.find({});
+async function getAllArchiveDocuments(req: Request, res: Response) {
+  const { start = 1, limit = 10, search = "" } = req.query;
+  const startNumber = parseInt(start as string, 10);
+  const pageSize = parseInt(limit as string, 10);
+
+  const [archives, total] = await ArchiveRepository.findAndCount({
+    where: [
+      {
+        itemNumber: ILike(`%${search}%`),
+      },
+      { description: ILike(`%${search}%`) },
+    ],
+    take: pageSize,
+    skip: startNumber - 1,
+  });
+
+  const end = Math.min(startNumber + pageSize - 1, total);
 
   res.status(200).json({
-    message: "All archived documents retrieved",
-    allArchivedDocuments,
+    message: "All archive documents retrieved",
+    archives,
+    meta: {
+      total,
+      start,
+      end,
+    },
   });
 }
 
-async function getArchivedDocumentById(req: Request, res: Response) {
-  const { id: archiveDocumentId } = req.params;
+async function getArchiveDocumentById(req: AuthRequest, res: Response) {
+  const { id: archiveId } = req.params;
+  const user = req.user;
 
-  if (!archiveDocumentId) {
-    res.status(400).json({
-      message: "Archive document id should be provided",
-    });
-    return;
-  }
-
-  const archivedDocument = await ArchiveDocument.findOne({
-    where: { documentId: archiveDocumentId },
-  });
-  if (!archivedDocument) {
+  const archive = await ArchiveRepository.findOne({ where: { archiveId } });
+  if (!archive) {
     res.status(404).json({
-      message: "Archive document with id provided not found",
+      message: "Archive document with id not found",
     });
     return;
   }
 
+  const allArchiveTransactions = await ArchiveTransactionRepository.find({
+    where: { archiveId, requestedById: user?.userId },
+    relations: {
+      requestedBy: true,
+    },
+  });
+
   res.status(200).json({
-    message: "Archive document retrieved",
-    archivedDocument,
+    message: "Archive retrieved",
+    archive: {
+      ...archive,
+      transactions: allArchiveTransactions,
+    },
   });
 }
 
-async function requestForArchivedDocument(req: AuthRequest, res: Response) {
-  const { id: archiveDocumentId } = req.params;
-  const { requestApproverId, comment } = req.body;
+async function requestForArchiveDocument(req: AuthRequest, res: Response) {
+  const { id: archiveId } = req.params;
+  const { department } = req.body;
 
-  if (!archiveDocumentId) {
-    res.status(400).json({
-      messge: "Archive document id should be provided",
-    });
-    return;
-  }
-
-  if (!requestApproverId) {
-    res.status(400).json({
-      message: "Requests for archive documents need to be approved",
-    });
-    return;
-  }
-
-  if (!comment) {
-    res.status(400).json({
-      message: "Comment is required",
-    });
-    return;
-  }
-
-  const archivedDocument = await ArchiveDocumentRepository.findOne({
-    where: { documentId: archiveDocumentId },
-  });
-  if (!archivedDocument) {
+  const archive = await ArchiveRepository.findOne({ where: { archiveId } });
+  if (!archive) {
     res.status(404).json({
-      message: "Archive document with id provided not found",
+      message: "Archive document not found",
     });
     return;
   }
 
   const user = req.user;
+
   const archiveTransaction = new ArchiveTransaction();
   archiveTransaction.transactionId = uuidv4();
-  archiveTransaction.documentId = archiveDocumentId;
-  archiveTransaction.requesterId = user.userId;
+  archiveTransaction.archiveId = archiveId;
+  archiveTransaction.requestedById = user!.userId;
   archiveTransaction.requestedAt = new Date();
-  archiveTransaction.requestApproverId = requestApproverId;
-  archiveTransaction.comment = comment;
+  archiveTransaction.department = department;
 
   const savedTransaction = await ArchiveTransactionRepository.save(
     archiveTransaction
   );
+
   const newTransaction = await ArchiveTransactionRepository.findOne({
     where: { transactionId: savedTransaction.transactionId },
     relations: {
-      requester: true,
-      document: true,
-      requestApprover: true,
+      requestedBy: true,
     },
   });
 
-  // create new notification item for transaction
+  const director = await UserRepository.findOne({
+    where: { department, role: "director" },
+  });
+
+  if (!director) {
+    res.status(404).json({
+      message: "No director for department",
+    });
+    return;
+  }
+
+  // notification should be sent to the director for request approval
   const notification = new ArchiveNotification();
   notification.notificationId = uuidv4();
   notification.transactionId = newTransaction!.transactionId;
-  notification.notificationType = "archive_document_request";
+  notification.senderId = user.userId;
+  notification.receiverId = director.userId;
+  notification.message = `Approve ${user.name}'s request for ${archive.itemNumber} with description ${archive.description} from archives`;
+  const savedNotification = await NotificationRepository.save(notification);
 
-  const newNotification = await ArchiveNotificationRepository.save(
-    notification
-  );
-
-  // Send notification to request approver to approve/cancel requester's request
-  if (SocketService.getInstance().isUserOnline(requestApproverId)) {
+  if (SocketService.getInstance().isUserOnline(director.userId)) {
     SocketService.getInstance().emitToUser(
-      requestApproverId,
-      "archive_document_request",
+      director.userId,
+      NotificationEvent.ArchiveRequest,
       {
-        ...newNotification,
-        transaction: newTransaction,
+        notification: savedNotification,
       }
     );
   }
-
   res.status(200).json({
-    message: "Request pending approval",
+    message: "Archive document requested for",
     transaction: newTransaction,
   });
 }
 
-// This controller is for getting all user's request for archive documents(transactions)
-async function getAllArchivedDocumentRequest(req: AuthRequest, res: Response) {
+async function approveRequestForArchiveDocument(
+  req: AuthRequest,
+  res: Response
+) {
+  const { transactionIds } = req.body;
   const user = req.user;
-
-  const allUserArchiveRequests = await ArchiveTransactionRepository.find({
-    where: { requesterId: user.userId },
-    relations: {
-      document: true,
-      requestApprover: true,
-    },
-  });
-
-  res.status(200).json({
-    message: "All user transactions retrieved",
-    allUserArchiveRequests,
-  });
-}
-
-// This controller is for the HOD to approve/reject the request for the archived document
-async function approveRequestForArchivedDocument(
-  req: AuthRequest,
-  res: Response
-) {
-  const { id: archiveTransactionId } = req.params;
-  const { approveRequest } = req.body; // approveRequest is a boolean indicating whether or not request for archive document has been approved
-
-  if (!archiveTransactionId) {
-    res.status(400).json({
-      message: "Archive transaction should be provided",
+  if (user?.role !== "director") {
+    res.status(403).json({
+      message: "Unauthorized",
     });
     return;
   }
 
-  if (!approveRequest) {
-    res.status(400).json({
-      message: "Archive transaction request should be approved/cancelled",
+  const promises = transactionIds.map(async (transactionId: string) => {
+    const archiveTransaction = await ArchiveTransactionRepository.findOne({
+      where: { transactionId },
+      relations: {
+        archive: true,
+      },
     });
-    return;
-  }
-
-  const archiveTransaction = await ArchiveTransactionRepository.findOne({
-    where: { transactionId: archiveTransactionId },
-    relations: {
-      requestApprover: true,
-      document: true,
-      requester: true,
-    },
-  });
-
-  if (!archiveTransaction) {
-    res.status(404).json({
-      message: "Invalid archive transaction id",
-    });
-    return;
-  }
-
-  if (approveRequest) {
-    archiveTransaction.status = "approved";
-  } else {
-    archiveTransaction.status = "rejected";
-  }
-
-  await ArchiveTransactionRepository.save(archiveTransaction);
-
-  res.status(200).json({
-    message: "Transaction request approval status saved",
-  });
-
-  const notification = new ArchiveNotification();
-  notification.notificationId = uuidv4();
-  notification.transactionId = archiveTransactionId;
-  notification.notificationType = "request_approval";
-
-  const newNotification = await ArchiveNotificationRepository.save(
-    notification
-  );
-
-  const transaction = await ArchiveTransactionRepository.findOne({
-    where: { transactionId: newNotification.transactionId },
-    relations: {
-      document: true,
-      requestApprover: true,
-      requester: true,
-    },
-  });
-
-  // send notification to reqeuster concerning the status of their archive document request
-  if (
-    SocketService.getInstance().isUserOnline(archiveTransaction.requesterId)
-  ) {
-    SocketService.getInstance().emitToUser(
-      archiveTransaction.requesterId,
-      "request_approval",
-      {
-        ...newNotification,
-        transaction,
-      }
-    );
-  }
-}
-
-async function acceptRequestForArchivedDocument(
-  req: AuthRequest,
-  res: Response
-) {
-  // ids is a list of transaction ids to be fulfilled by archiver
-  const { ids: archiveTransactionIds } = req.body;
-
-  if (!archiveTransactionIds) {
-    res.status(400).json({
-      message: "Archive transaction id should be provided",
-    });
-    return;
-  }
-
-  archiveTransactionIds.forEach(async (archiveTransactionId: any) => {
-    const transaction = await ArchiveTransactionRepository.findOne({
-      where: { transactionId: archiveTransactionId, status: "approved" },
-    });
-    if (!transaction) {
-      console.log("No approved transaction for id provided");
+    if (!archiveTransaction) {
+      console.log("Archive transaction not found for: ", transactionId);
       return;
     }
-    transaction.status = "accepted";
-    await ArchiveTransactionRepository.save(transaction);
-    // TODO: send notification to requester that their request has been accepted
+
+    await ArchiveTransactionRepository.update(
+      { transactionId },
+      { approved: true }
+    );
+
+    // send notification to requester to showing the request approval status
+    const notification = new ArchiveNotification();
+    notification.notificationId = uuidv4();
+    notification.transactionId = transactionId;
+    notification.senderId = user.userId;
+    notification.receiverId = archiveTransaction.requestedById;
+    notification.message = `Request for archive document with archival number ${archiveTransaction.archive.archivalNumber} on ${archiveTransaction.requestedAt} approved by the director`;
+    const savedNotification = await ArchiveNotification.save(notification);
+
+    const socketInstance = SocketService.getInstance();
+    if (socketInstance.isUserOnline(archiveTransaction.requestedById)) {
+      socketInstance.emitToUser(
+        archiveTransaction.requestedById,
+        NotificationEvent.ArchiveRequestApproval,
+        {
+          notification: savedNotification,
+        }
+      );
+    }
+    return transactionId;
   });
 
+  const allPromiseResults = await Promise.all(promises);
+  const resolvedPromises = allPromiseResults.filter(
+    (promiseResult) => promiseResult
+  );
+  const rejectedPromises = transactionIds.filter(
+    (id: string) => !resolvedPromises.includes(id)
+  );
+
   res.status(200).json({
-    message: "All requests for archive documents accepted",
+    message: "Archive document request approval saved",
+    unapprovedTransactionIds: rejectedPromises,
   });
 }
 
-async function getAllUserRequestsForDocument(req: AuthRequest, res: Response) {
-  const { id: documentId } = req.params;
+async function fulfillRequestForArchiveDocument(
+  req: AuthRequest,
+  res: Response
+) {
+  console.log("Fulfill Archive Request");
+  const { transactionIds } = req.body;
+  const user = req.user;
 
-  if (!documentId) {
-    res.status(400).json({
-      message: "Document id should be provided",
+  const fulfillPromises = transactionIds.map(async (transactionId: string) => {
+    const archiveTransaction = await ArchiveTransactionRepository.findOne({
+      where: { transactionId },
+      relations: { archive: true, requestedBy: true },
+    });
+    if (!archiveTransaction) {
+      console.log(`Archive transaction with id: ${transactionId} not found`);
+      return;
+    }
+
+    if (!archiveTransaction.approved) {
+      console.log(`Archive transaction with id: ${transactionId} not approved`);
+      return;
+    }
+
+    await ArchiveTransactionRepository.update(
+      { transactionId },
+      { retrievedBy: user?.name, dateProduced: new Date(), produced: true }
+    );
+
+    // send notification to requester of request fulfillment status
+    const notification = new ArchiveNotification();
+    notification.notificationId = uuidv4();
+    notification.transactionId = transactionId;
+    notification.senderId = user.userId;
+    notification.receiverId = archiveTransaction.requestedById;
+    notification.message = `Request for archive document with item number ${archiveTransaction.archive.itemNumber} on ${archiveTransaction.requestedAt} fulfilled by archiver`;
+    const savedNotification = await NotificationRepository.save(notification);
+
+    const socketInstance = SocketService.getInstance();
+    if (socketInstance.isUserOnline(archiveTransaction.requestedById)) {
+      socketInstance.emitToUser(
+        archiveTransaction.requestedById,
+        NotificationEvent.ArchiveRequestFulfillMent,
+        {
+          notification: savedNotification,
+        }
+      );
+    }
+    return transactionId;
+  });
+
+  Promise.all(fulfillPromises).then((data) => {
+    const fulfilledRequests = data.filter((item) => item);
+    const unFulfilledRequests = transactionIds.filter(
+      (item: string) => !fulfilledRequests.includes(item)
+    );
+    res.status(200).json({
+      message: "Fulfilled all requests for archive documents",
+      unFulfilledRequests,
+    });
+  });
+}
+
+async function returnArchiveDocument(req: Request, res: Response) {
+  const { id: transactionId } = req.params;
+  const { remarks } = req.body;
+
+  const transaction = await ArchiveTransactionRepository.findOne({
+    where: { transactionId },
+  });
+  if (!transaction) {
+    res.status(404).json({
+      message: "Transaction with id provided not found",
     });
     return;
   }
 
-  const user = req.user;
-
-  const allUserRequests = await ArchiveTransactionRepository.find({
-    where: { requesterId: user.userId, documentId: documentId },
-    relations: {
-      requestApprover: true,
-    },
-  });
+  transaction.dateReturned = new Date();
+  transaction.remarks = remarks ? remarks : "";
+  const savedTransaction = await ArchiveTransactionRepository.save(transaction);
 
   res.status(200).json({
-    message: "All user requests for document retrieved",
-    allUserRequests,
+    message: "Archive document returned",
+    transaction: savedTransaction,
   });
 }
 
-async function getRequestsPendingHODApproval(req: AuthRequest, res: Response) {
-  const user = req.user;
-  if (user.role !== "HOD") {
-    res.status(403).json({
-      message: "User is unauthorized",
-    });
-    return;
-  }
-
-  const allRequests = await ArchiveTransactionRepository.find({
-    where: { status: "submitted", requestApproverId: user.userId },
-    relations: {
-      document: true,
-      requester: true,
-    },
-  });
-
-  res.status(200).json({
-    message: "All requests pending HOD approval retrieved",
-    requestsPendingApproval: allRequests,
-  });
-}
-
-async function getApprovedRequestsPendingArchiverAcceptance(
+async function getAllUserArchiveDocumentRequest(
   req: AuthRequest,
   res: Response
 ) {
   const user = req.user;
+  const { start = 1, limit = 10, search = "" } = req.query;
+  const startNumber = parseInt(start as string, 10);
+  const pageSize = parseInt(limit as string, 10);
 
-  if (user.role !== "archiver") {
+  const [userRequests, total] = await ArchiveTransactionRepository.findAndCount(
+    {
+      where: [
+        {
+          requestedById: user!.userId,
+          produced: false,
+          archive: { itemNumber: ILike(`%${search}%`) },
+        },
+        {
+          requestedById: user!.userId,
+          produced: false,
+          archive: { fileNumber: ILike(`%${search}%`) },
+        },
+        {
+          requestedById: user!.userId,
+          produced: false,
+          archive: { description: ILike(`%${search}%`) },
+        },
+      ],
+      relations: {
+        requestedBy: true,
+        archive: true,
+      },
+      take: pageSize,
+      skip: startNumber - 1,
+    }
+  );
+
+  const end = Math.min(startNumber + pageSize - 1, total);
+
+  res.status(200).json({
+    message: "All user archive requests retrieved",
+    userRequests,
+    meta: {
+      total,
+      end,
+      start,
+    },
+  });
+}
+
+async function getAllArchiveDocumentRequestsAwaitingApproval(
+  req: AuthRequest,
+  res: Response
+) {
+  const user = req.user;
+  const { start = 1, limit = 10, search = "" } = req.query;
+  const startNumber = parseInt(start as string, 10);
+  const pageSize = parseInt(limit as string, 10);
+
+  if (user?.role !== "director") {
     res.status(403).json({
-      message: "User is unauthorized",
+      message: "Unauthorized",
     });
     return;
   }
 
-  const allRequests = await ArchiveTransactionRepository.find({
-    where: { status: "approved" },
-    relations: {
-      document: true,
-      requester: true,
-      requestApprover: true,
-    },
+  const director = await UserRepository.findOne({
+    where: { userId: user.userId },
+  });
+  if (!director) {
+    res.status(404).json({
+      message: "Director with id not found",
+    });
+    return;
+  }
+
+  const [awaitingApproval, total] =
+    await ArchiveTransactionRepository.findAndCount({
+      where: [
+        {
+          department: director.department,
+          approved: false,
+          archive: { itemNumber: ILike(`%${search}%`) },
+        },
+        {
+          department: director.department,
+          approved: false,
+          archive: { fileNumber: ILike(`%${search}%`) },
+        },
+        {
+          department: director.department,
+          approved: false,
+          archive: { description: ILike(`%${search}%`) },
+        },
+        {
+          department: director.department,
+          approved: false,
+          requestedBy: { name: ILike(`%${search}%`) },
+        },
+      ],
+      relations: {
+        archive: true,
+        requestedBy: true,
+      },
+      skip: startNumber - 1,
+      take: pageSize,
+    });
+
+  const transactionsAwaitingApproval = awaitingApproval.map((item) => {
+    return {
+      ...item,
+      requestedBy: {
+        name: item.requestedBy.name,
+        department: item.requestedBy.department,
+        userId: item.requestedBy.userId,
+      },
+    };
   });
 
+  const end = Math.min(startNumber + pageSize - 1, total);
+
   res.status(200).json({
-    message: "Approved requests pending acceptance retrieved",
-    requestsPendingAcceptance: allRequests,
+    message: "Archive documents awaiting approval retrieved",
+    transactionsAwaitingApproval,
+    meta: {
+      start,
+      end,
+      total,
+    },
+  });
+}
+
+async function getAllArchiveDocumentRequestsAwaitingFulfillment(
+  req: Request,
+  res: Response
+) {
+  const { start = 1, limit = 10, search = "" } = req.query;
+  const startNumber = parseInt(start as string, 10);
+  const pageSize = parseInt(limit as string, 10);
+
+  const [approvedTransaction, total] =
+    await ArchiveTransactionRepository.findAndCount({
+      where: [
+        {
+          approved: true,
+          produced: false,
+          archive: { itemNumber: ILike(`%${search}%`) },
+        },
+        {
+          approved: true,
+          produced: false,
+          archive: { fileNumber: ILike(`%${search}%`) },
+        },
+        {
+          approved: true,
+          produced: false,
+          archive: { description: ILike(`%${search}%`) },
+        },
+        {
+          approved: true,
+          produced: false,
+          requestedBy: { name: ILike(`%${search}%`) },
+        },
+        {
+          approved: true,
+          produced: false,
+          requestedBy: { department: ILike(`%${search}%`) },
+        },
+      ],
+      relations: {
+        archive: true,
+        requestedBy: true,
+      },
+      skip: startNumber - 1,
+      take: pageSize,
+    });
+
+  const awaitingFulfillment = approvedTransaction.map((item) => {
+    return {
+      ...item,
+      requestedBy: {
+        userId: item.requestedBy.userId,
+        name: item.requestedBy.name,
+        department: item.requestedBy.department,
+      },
+    };
+  });
+
+  const end = Math.min(startNumber + pageSize - 1, total);
+
+  res.status(200).json({
+    message: "Archive documents awaiting fulfillment retrieved",
+    awaitingFulfillment,
+    meta: {
+      start,
+      end,
+      total,
+    },
   });
 }
 
 export {
-  addArchivedDocument,
-  getAllArchivedDocuments,
-  getArchivedDocumentById,
-  requestForArchivedDocument,
-  approveRequestForArchivedDocument,
-  getAllArchivedDocumentRequest,
-  acceptRequestForArchivedDocument,
-  getAllUserRequestsForDocument,
-  getRequestsPendingHODApproval,
-  getApprovedRequestsPendingArchiverAcceptance,
+  addToArchive,
+  getAllArchiveDocuments,
+  getArchiveDocumentById,
+  requestForArchiveDocument,
+  approveRequestForArchiveDocument,
+  fulfillRequestForArchiveDocument,
+  returnArchiveDocument,
+  getAllUserArchiveDocumentRequest,
+  getAllArchiveDocumentRequestsAwaitingApproval,
+  getAllArchiveDocumentRequestsAwaitingFulfillment,
 };

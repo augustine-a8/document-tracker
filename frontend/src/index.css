@@ -7,15 +7,16 @@ body {
   font-family: "Poppins", sans-serif;
   font-weight: 400;
   font-style: normal;
+  font-size: 0.875rem;
 }
 
 main {
   background: white;
   position: absolute;
   top: 3.5rem;
-  bottom: 0;
   left: 15%;
   right: 15%;
+  min-height: calc(100vh - 3.5rem);
   border-left: 1px solid #ddd;
   border-right: 1px solid #ddd;
 }
@@ -145,12 +146,29 @@ table thead th {
   text-align: left;
   font-size: 0.8rem;
   font-weight: 500;
-  color: white ;
+  color: white;
+}
+
+table thead .top-left {
+  border-top-left-radius: 8px;
+}
+
+table thead .top-right {
+  border-top-right-radius: 8px;
 }
 
 table tbody {
   font-size: 0.875rem;
   line-height: 1.25rem;
+  color: #595959;
+}
+
+table tbody.highlight tr:hover {
+  box-shadow: inset 1px 0 0 #dadce0, inset -1px 0 0 #dadce0,
+    0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+  z-index: 2;
+  cursor: pointer;
+  background: whitesmoke;
 }
 
 table tr {
@@ -301,20 +319,26 @@ nav > div > div {
 
 .form-control {
   width: 100%;
-  padding: 0.5rem 1rem;
 }
 
 .form-control label {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
   font-weight: 500;
+  color: #7f7f7f;
 }
 
-.form-control input {
+.form-control > input {
   display: block;
   border: 1px solid gray;
   border-radius: 5px;
   width: 100%;
+}
+
+.form-control input {
   font: inherit;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
   padding-inline: 0.5rem;
   height: 32px;
 }

@@ -1,7 +1,10 @@
-import { ITransaction } from "../@types/transaction";
+import {
+  IActiveDocTransaction,
+  INewActiveDocTransaction,
+} from "../@types/activeDoc";
 
 interface DocumentTransactionsProps {
-  transactions: ITransaction[];
+  transactions: INewActiveDocTransaction[];
   currentPage: number;
   maxItemsPerPage: number;
 }
@@ -16,40 +19,31 @@ export default function DocumentTransactions({
       <table>
         <thead>
           <tr>
-            <th>#</th>
-            <th>Sender</th>
-            <th>Receiver</th>
-            <th>Sent At</th>
-            <th>Acknowledged At</th>
-            <th>Comment</th>
+            {/* <th>#</th> */}
+            <th>Source</th>
+            <th>Forwarded to</th>
+            <th>Date</th>
+            <th>Action</th>
+            <th>Comments</th>
           </tr>
         </thead>
         <tbody>
-          {transactions.map((item, idx) => {
-            const {
-              transactionId,
-              comment,
-              sentTimestamp,
-              acknowledgedTimestamp,
-              sender,
-              receiver,
-            } = item;
-            return (
-              <tr key={transactionId}>
-                <td>{(currentPage - 1) * maxItemsPerPage + idx + 1}</td>
-                <td data-cell="sender">{sender.name}</td>
-                <td data-cell="receiver">{receiver.name}</td>
-                <td data-cell="sent at">
-                  {new Date(sentTimestamp).toUTCString()}
-                </td>
-                <td data-cell="acknowledged at">
-                  {acknowledgedTimestamp
-                    ? new Date(acknowledgedTimestamp).toUTCString()
-                    : "n/a"}
-                </td>
-                <td data-cell="comment">{comment}</td>
-              </tr>
-            );
+          {transactions.map((transaction, idx) => {
+            const { transactionId, source, forwardedTo, stateHistories } =
+              transaction;
+            return stateHistories.map((stateHistory) => {
+              const { date, state, comment } = stateHistory;
+              return (
+                <tr key={transactionId}>
+                  {/* <td>{(currentPage - 1) * maxItemsPerPage + idx + 1}</td> */}
+                  <td data-cell="source">{source.name}</td>
+                  <td data-cell="forward to">{forwardedTo.name}</td>
+                  <td>{new Date(date).toISOString()}</td>
+                  <td>{state}</td>
+                  <td data-cell="comments">{comment}</td>
+                </tr>
+              );
+            });
           })}
         </tbody>
       </table>

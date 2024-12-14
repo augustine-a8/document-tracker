@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 
 import { AppDataSource } from "../data-source";
-import { User } from "../entity";
+import { User } from "../entities";
 import { AuthRequest } from "../@types/authRequest";
 
 const UserRepository = AppDataSource.getRepository(User);
@@ -65,7 +65,7 @@ async function searchUserByNameOrEmail(req: AuthRequest, res: Response) {
   res.status(200).json({
     message: "Search results returned",
     searchResults: searchResults.filter(
-      (user) => user.userId !== req.user.userId
+      (user) => user.userId !== req.user?.userId
     ),
   });
 }
@@ -73,7 +73,7 @@ async function searchUserByNameOrEmail(req: AuthRequest, res: Response) {
 async function getMyAccount(req: AuthRequest, res: Response) {
   const user = req.user;
   const myAccount = await UserRepository.findOne({
-    where: { userId: user.userId },
+    where: { userId: user!.userId },
   });
   if (!myAccount) {
     res.status(404).json({

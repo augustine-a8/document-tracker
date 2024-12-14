@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 
 import { Config } from "../config";
+import { NotificationEvent } from "../@types/notification";
 
 const getTokenFromCookie = (cookieString: string) => {
   const cookies = cookieString.split("; "); // Split into individual cookies
@@ -80,7 +81,7 @@ class SocketService {
     return userId in this.activeUsers;
   }
 
-  public emitToUser(userId: string, event: string, data: any) {
+  public emitToUser(userId: string, event: NotificationEvent, data: any) {
     const socketId = this.activeUsers[userId];
     if (socketId) {
       this.io.to(socketId).emit(event, data);

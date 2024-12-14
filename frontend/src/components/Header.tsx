@@ -3,22 +3,18 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "../hooks/useAuth";
-import { useNotification } from "../hooks/useNotification";
-import { getUserNotificationsApi } from "../api/notifications.api";
-import { IError } from "../@types/error";
 import Notifications from "./Notifications";
 import Avatar from "./Avatar";
-import { getMyAccountApi } from "../api/user.api";
 
 export default function Header() {
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const [showNotificationDropdown, setShowNotificationDropdown] =
     useState<boolean>(false);
-  const [error, setError] = useState<IError | null>(null);
   const avatarDropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const { logout, setMyAccount } = useAuth();
-  const { addToNotificationQueue } = useNotification();
+  const { logout, getMyAccount } = useAuth();
+
+  const myAccount = getMyAccount();
 
   const handleLogout = () => {
     logout();
@@ -54,34 +50,6 @@ export default function Header() {
     };
   }, [showDropdown]);
 
-  useEffect(() => {
-    const fetchAllNotifications = () => {
-      getUserNotificationsApi()
-        .then((res) => {
-          const notifications = res.data.notifications;
-          addToNotificationQueue(notifications);
-        })
-        .catch((err) => {
-          setError(err.data);
-          console.log({ err });
-        });
-    };
-
-    fetchAllNotifications();
-  }, []);
-
-  useEffect(() => {
-    const getMyAccount = () => {
-      getMyAccountApi().then((res) => {
-        if (res.status === 200) {
-          setMyAccount(res.data.myAccount);
-        }
-      });
-    };
-
-    getMyAccount();
-  }, []);
-
   return (
     <>
       <header className="w-full h-14 relative px-4 border-b hidden flex-row items-center justify-between bg-white md:flex">
@@ -96,19 +64,19 @@ export default function Header() {
                     ? "px-2 py-1 border border-[#edf2fb] rounded-md text-sm text-[#023e8a] bg-[#edf2fb]"
                     : "px-2 py-1 text-sm rounded-md border border-transparent hover:border hover:border-gray-400 text-gray-600"
                 }
+                end
               >
                 Dashboard
               </NavLink>
               <NavLink
-                to="/documents"
+                to="/activeDoc/"
                 className={({ isActive }) =>
                   isActive
                     ? "px-2 py-1 border border-[#edf2fb] rounded-md text-sm text-[#023e8a] bg-[#edf2fb]"
                     : "px-2 py-1 text-sm rounded-md border border-transparent hover:border hover:border-gray-400 text-gray-600"
                 }
-                end
               >
-                Documents
+                Active Docs
               </NavLink>
               <NavLink
                 to="/archives/"
@@ -117,10 +85,21 @@ export default function Header() {
                     ? "px-2 py-1 border border-[#edf2fb] rounded-md text-sm text-[#023e8a] bg-[#edf2fb]"
                     : "px-2 py-1 text-sm rounded-md border border-transparent hover:border hover:border-gray-400 text-gray-600"
                 }
-                end
               >
                 Archives
               </NavLink>
+              {myAccount?.role === "registrar" ? (
+                <NavLink
+                  to="/courier/"
+                  className={({ isActive }) =>
+                    isActive
+                      ? "px-2 py-1 border border-[#edf2fb] rounded-md text-sm text-[#023e8a] bg-[#edf2fb]"
+                      : "px-2 py-1 text-sm rounded-md border border-transparent hover:border hover:border-gray-400 text-gray-600"
+                  }
+                >
+                  Courier
+                </NavLink>
+              ) : undefined}
             </div>
           </div>
         </nav>
