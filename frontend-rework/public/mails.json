@@ -1,0 +1,96 @@
+{
+    "mails": [
+      {
+        "id": "1",
+        "referenceNumber": "MAIL-2023-001",
+        "organization": "XYZ Corp",
+        "addressees": ["John Doe", "Jane Smith"],
+        "date": "2023-12-01"
+      },
+      {
+        "id": "2",
+        "referenceNumber": "MAIL-2023-002",
+        "organization": "Alpha Inc",
+        "addressees": ["Alice Brown", "Michael Johnson"],
+        "date": "2023-12-02"
+      },
+      {
+        "id": "3",
+        "referenceNumber": "MAIL-2023-003",
+        "organization": "Beta Solutions",
+        "addressees": ["Emily Davis"],
+        "date": "2023-12-03"
+      },
+      {
+        "id": "4",
+        "referenceNumber": "MAIL-2023-004",
+        "organization": "Gamma LLC",
+        "addressees": ["Tom Wilson", "Laura Martinez"],
+        "date": "2023-12-04"
+      },
+      {
+        "id": "5",
+        "referenceNumber": "MAIL-2023-005",
+        "organization": "Delta Corp",
+        "addressees": ["Sarah White", "Noah Harris"],
+        "date": "2023-12-05"
+      },
+      {
+        "id": "6",
+        "referenceNumber": "MAIL-2023-006",
+        "organization": "Epsilon Ltd",
+        "addressees": ["William Clark"],
+        "date": "2023-12-06"
+      },
+      {
+        "id": "7",
+        "referenceNumber": "MAIL-2023-007",
+        "organization": "Zeta Industries",
+        "addressees": ["Sophia Lewis", "James Walker"],
+        "date": "2023-12-07"
+      },
+      {
+        "id": "8",
+        "referenceNumber": "MAIL-2023-008",
+        "organization": "Theta Corp",
+        "addressees": ["Isabella Scott", "Lucas Adams"],
+        "date": "2023-12-08"
+      },
+      {
+        "id": "9",
+        "referenceNumber": "MAIL-2023-009",
+        "organization": "Iota Tech",
+        "addressees": ["Mia Parker"],
+        "date": "2023-12-09"
+      },
+      {
+        "id": "10",
+        "referenceNumber": "MAIL-2023-010",
+        "organization": "Kappa Innovations",
+        "addressees": ["Ethan Collins", "Charlotte Cooper"],
+        "date": "2023-12-10"
+      },
+      {
+        "id": "11",
+        "referenceNumber": "MAIL-2023-011",
+        "organization": "Lambda Inc",
+        "addressees": ["Benjamin Ramirez"],
+        "date": "2023-12-11"
+      },
+      {
+        "id": "12",
+        "referenceNumber": "MAIL-2023-012",
+        "organization": "Mu Enterprises",
+        "addressees": ["Olivia Harris", "Emma Thompson"],
+        "date": "2023-12-12"
+      },
+      {
+        "id": "13",
+        "referenceNumber": "MAIL-2023-013",
+        "organization": "Nu Dynamics",
+        "addressees": ["David Wilson", "Tom Anderson"],
+        "date": "2023-12-13"
+      }
+    ]
+  }
+  

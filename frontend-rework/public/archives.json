@@ -1,0 +1,124 @@
+{
+  "archives": [
+    {
+      "id": "1",
+      "itemNumber": 1,
+      "archivalNumber": "ARCH001",
+      "coveringDate": "2024",
+      "remarks": "Preserved in good condition",
+      "description": "A collection of letters from the early 20th century."
+    },
+    {
+      "id": "2",
+      "itemNumber": 2,
+      "archivalNumber": "ARCH002",
+      "coveringDate": "2023",
+      "remarks": "Fragile, handle with care",
+      "description": "Photographs from the Victorian era."
+    },
+    {
+      "id": "3",
+      "itemNumber": 3,
+      "archivalNumber": "ARCH003",
+      "coveringDate": "2024",
+      "remarks": "Recently restored",
+      "description": "Diary entries from a soldier during World War II."
+    },
+    {
+      "id": "4",
+      "itemNumber": 4,
+      "archivalNumber": "ARCH004",
+      "coveringDate": "2023",
+      "remarks": "Requires digitization",
+      "description": "Blueprints of historical architecture."
+    },
+    {
+      "id": "5",
+      "itemNumber": 5,
+      "archivalNumber": "ARCH005",
+      "coveringDate": "2024",
+      "remarks": "Contains annotations",
+      "description": "Manuscripts of a famous poet."
+    },
+    {
+      "id": "6",
+      "itemNumber": 6,
+      "archivalNumber": "ARCH006",
+      "coveringDate": "2023",
+      "remarks": "Partially damaged",
+      "description": "Maps from ancient expeditions."
+    },
+    {
+      "id": "7",
+      "itemNumber": 7,
+      "archivalNumber": "ARCH007",
+      "coveringDate": "2024",
+      "remarks": "Stored in temperature-controlled environment",
+      "description": "Historical documents related to trade agreements."
+    },
+    {
+      "id": "8",
+      "itemNumber": 8,
+      "archivalNumber": "ARCH008",
+      "coveringDate": "2023",
+      "remarks": "Faint text, requires enhancement",
+      "description": "Old newspaper clippings."
+    },
+    {
+      "id": "9",
+      "itemNumber": 9,
+      "archivalNumber": "ARCH009",
+      "coveringDate": "2023",
+      "remarks": "Previously misplaced, now cataloged",
+      "description": "Personal letters of a renowned scientist."
+    },
+    {
+      "id": "10",
+      "itemNumber": 10,
+      "archivalNumber": "ARCH010",
+      "coveringDate": "2024",
+      "remarks": "Sealed for preservation",
+      "description": "Ancient legal documents."
+    },
+    {
+      "id": "11",
+      "itemNumber": 11,
+      "archivalNumber": "ARCH011",
+      "coveringDate": "2023",
+      "remarks": "Archived in fair condition",
+      "description": "Early drafts of a famous novel."
+    },
+    {
+      "id": "12",
+      "itemNumber": 12,
+      "archivalNumber": "ARCH012",
+      "coveringDate": "2024",
+      "remarks": "Newly acquired",
+      "description": "Medieval trade records."
+    },
+    {
+      "id": "13",
+      "itemNumber": 13,
+      "archivalNumber": "ARCH013",
+      "coveringDate": "2023",
+      "remarks": "Some parts missing",
+      "description": "An incomplete set of ancient coin molds."
+    },
+    {
+      "id": "14",
+      "itemNumber": 14,
+      "archivalNumber": "ARCH014",
+      "coveringDate": "2024",
+      "remarks": "Digitized version available",
+      "description": "Recordings of historic speeches."
+    },
+    {
+      "id": "15",
+      "itemNumber": 15,
+      "archivalNumber": "ARCH015",
+      "coveringDate": "2023",
+      "remarks": "Extremely delicate",
+      "description": "Rare botanical illustrations from the 18th century."
+    }
+  ]
+}

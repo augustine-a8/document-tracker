@@ -1,0 +1,101 @@
+{
+    "transactions": [
+      {
+        "id": "1a2b3c",
+        "sender": "Alice",
+        "receiver": "Bob",
+        "date": "2024-12-01T10:15:30Z",
+        "comments": "Payment for December rent",
+        "action": "send"
+      },
+      {
+        "id": "2b3c4d",
+        "sender": "Charlie",
+        "receiver": "Alice",
+        "date": "2024-12-02T12:20:00Z",
+        "comments": "Reimbursement for lunch",
+        "action": "acknowledge"
+      },
+      {
+        "id": "3c4d5e",
+        "sender": "Alice",
+        "receiver": "Dana",
+        "date": "2024-12-03T14:05:45Z",
+        "comments": "Gift for holidays",
+        "action": "send"
+      },
+      {
+        "id": "4d5e6f",
+        "sender": "Bob",
+        "receiver": "Charlie",
+        "date": "2024-12-04T08:30:10Z",
+        "comments": "Refund for overpayment",
+        "action": "return"
+      },
+      {
+        "id": "5e6f7g",
+        "sender": "Dana",
+        "receiver": "Alice",
+        "date": "2024-12-05T16:45:20Z",
+        "comments": "Thanks for the gift",
+        "action": "acknowledge"
+      },
+      {
+        "id": "6f7g8h",
+        "sender": "Alice",
+        "receiver": "Eve",
+        "date": "2024-12-06T11:25:00Z",
+        "comments": "Payment for consultation",
+        "action": "send"
+      },
+      {
+        "id": "7g8h9i",
+        "sender": "Charlie",
+        "receiver": "Bob",
+        "date": "2024-12-07T09:15:30Z",
+        "comments": "Donation to charity",
+        "action": "send"
+      },
+      {
+        "id": "8h9i0j",
+        "sender": "Eve",
+        "receiver": "Dana",
+        "date": "2024-12-08T20:10:15Z",
+        "comments": "Birthday gift",
+        "action": "send"
+      },
+      {
+        "id": "9i0j1k",
+        "sender": "Bob",
+        "receiver": "Alice",
+        "date": "2024-12-09T13:05:50Z",
+        "comments": "Thanks for help with the project",
+        "action": "acknowledge"
+      },
+      {
+        "id": "0j1k2l",
+        "sender": "Alice",
+        "receiver": "Charlie",
+        "date": "2024-12-10T17:30:25Z",
+        "comments": "Return of borrowed money",
+        "action": "return"
+      },
+      {
+        "id": "1k2l3m",
+        "sender": "Dana",
+        "receiver": "Eve",
+        "date": "2024-12-11T18:50:40Z",
+        "comments": "Contribution for event",
+        "action": "send"
+      },
+      {
+        "id": "2l3m4n",
+        "sender": "Eve",
+        "receiver": "Alice",
+        "date": "2024-12-12T19:15:55Z",
+        "comments": "Thank you note",
+        "action": "acknowledge"
+      }
+    ]
+  }
+  

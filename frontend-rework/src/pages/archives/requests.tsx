@@ -1,30 +1,24 @@
 import { useState } from "react";
-import ActiveDocumentAcknowledgements from "../../../public/active_document_acknowledgements.json";
+import Requests from "../../../public/archive_requests.json";
 
-export function Acknowledgements() {
+export function ArchiveRequests() {
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
-  const [selectedAcknowledgements, setSelectedAcknowledgements] = useState<
-    string[]
-  >([]);
+  const [selectedRequests, setSelectedRequests] = useState<string[]>([]);
 
   const onAcknowledgementCheck = (ackId: string) => {
-    if (selectedAcknowledgements.includes(ackId)) {
-      setSelectedAcknowledgements((prev) => prev.filter((id) => id !== ackId));
+    if (selectedRequests.includes(ackId)) {
+      setSelectedRequests((prev) => prev.filter((id) => id !== ackId));
     } else {
-      setSelectedAcknowledgements((prev) => [...prev, ackId]);
+      setSelectedRequests((prev) => [...prev, ackId]);
     }
   };
 
   const onAcknowledgeAll = () => {
-    if (
-      selectedAcknowledgements.length === ActiveDocumentAcknowledgements.length
-    ) {
-      setSelectedAcknowledgements([]);
+    if (selectedRequests.length === Requests.archiveRequests.length) {
+      setSelectedRequests([]);
     } else {
-      setSelectedAcknowledgements(
-        ActiveDocumentAcknowledgements.map(
-          (acknowledgement) => acknowledgement.id
-        )
+      setSelectedRequests(
+        Requests.archiveRequests.map((request) => String(request.id))
       );
     }
   };
@@ -34,9 +28,9 @@ export function Acknowledgements() {
       <div className="relative">
         <div className="h-20 flex flex-row items-center justify-between border-b border-b-gray-200 bg-white z-50">
           <div>
-            <h2 className="text-lg font-semibold">Acknowledgments</h2>
+            <h2 className="text-lg font-semibold">Archive Requests</h2>
             <p className="text-gray-500 font-medium">
-              Documents sent to you awaiting acknowledgement
+              Requests for documents from archives
             </p>
           </div>
         </div>
@@ -65,51 +59,45 @@ export function Acknowledgements() {
                         id=""
                         onChange={onAcknowledgeAll}
                       />
-                      Subject
+                      Archival number
                     </div>
                   </th>
                   <th className="flex-[2_1_0] font-normal text-gray-600 text-left">
-                    Reference number
+                    Description
                   </th>
                   <th className="flex-1 font-normal text-gray-600 text-left">
-                    Sender
+                    Covering date
                   </th>
-                  {/* <th className="flex-1 font-normal text-gray-600 text-left">
-                  Recipient
-                </th> */}
-                  {/* <th className="flex-1 font-normal text-gray-600 text-left">
-                  Action
-                </th> */}
-                  <th className="flex-[2_1_0] font-normal text-gray-600 text-left">
-                    Sent at
+                  <th className="flex-1 font-normal text-gray-600 text-left">
+                    Requested by
                   </th>
                   <th className="flex-[2_1_0] font-normal text-gray-600 text-left">
-                    Comment
+                    Requested at
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {ActiveDocumentAcknowledgements.map((acknowledgement) => (
+                {Requests.archiveRequests.map((request) => (
                   <tr className="flex flex-row items-center font-medium px-4 h-12 border-b border-b-gray-200">
                     <td className="flex-[2_1_0] font-normal text-left">
                       <div className="flex flex-row items-center gap-4">
                         <input
                           type="checkbox"
-                          checked={selectedAcknowledgements.includes(
-                            acknowledgement.id
+                          checked={selectedRequests.includes(
+                            String(request.id)
                           )}
                           onChange={() => {
-                            onAcknowledgementCheck(acknowledgement.id);
+                            onAcknowledgementCheck(String(request.id));
                           }}
                         />
-                        {acknowledgement.subject}
+                        {request.archiveNumber}
                       </div>
                     </td>
                     <td className="flex-[2_1_0] font-normal text-left">
-                      {acknowledgement.referenceNumber}
+                      {request.description}
                     </td>
                     <td className="flex-1 font-normal text-left">
-                      {acknowledgement.sender}
+                      {request.coveringDate}
                     </td>
                     {/* <td className="flex-1 font-normal text-left">
                     {acknowledgement.recipient}
@@ -117,11 +105,11 @@ export function Acknowledgements() {
                     {/* <td className="flex-1 font-normal text-left">
                     {acknowledgement.action}
                   </td> */}
-                    <td className="flex-[2_1_0] font-normal text-left">
-                      {new Date(acknowledgement.date).toDateString()}
+                    <td className="flex-1 font-normal text-left">
+                      {request.requestedBy}
                     </td>
                     <td className="flex-[2_1_0] font-normal text-left">
-                      {acknowledgement.comment}
+                      {new Date(request.requestedAt).toDateString()}
                     </td>
                   </tr>
                 ))}
@@ -175,9 +163,9 @@ export function Acknowledgements() {
           </div>
         </div>
       </div>
-      {selectedAcknowledgements.length > 0 ? (
+      {selectedRequests.length > 0 ? (
         <div className="absolute bottom-1 left-44 bg-gray-200 z-[100] rounded-lg shadow-actionBar overflow-hidden p-1">
-          <ActionBar selectedAcknowledgements={selectedAcknowledgements} />
+          <ActionBar selectedRequests={selectedRequests} />
         </div>
       ) : undefined}
     </>
@@ -185,22 +173,22 @@ export function Acknowledgements() {
 }
 
 interface IActionBarProps {
-  selectedAcknowledgements: string[];
+  selectedRequests: string[];
 }
 
-function ActionBar({ selectedAcknowledgements }: IActionBarProps) {
+function ActionBar({ selectedRequests }: IActionBarProps) {
   return (
     <div className="flex flex-row items-center justify-evenly h-8 w-[400px] rounded-md text-black">
       <div className="flex flex-row items-center gap-2">
         <i className="ri-checkbox-line"></i>
-        <p className="text-xs">{selectedAcknowledgements.length} selected</p>
+        <p className="text-xs">{selectedRequests.length} selected</p>
       </div>
       <div className="w-[1px] bg-gray-400 h-full"></div>
       <div>
         <button>
           <div className="flex flex-row items-center gap-2 py-1 px-2 rounded-md hover:bg-gray-100 hover:font-medium hover:text-green-600">
             <i className="ri-check-line"></i>
-            <p className="text-xs">Acknowledge</p>
+            <p className="text-xs">Approve</p>
           </div>
         </button>
       </div>
@@ -210,7 +198,7 @@ function ActionBar({ selectedAcknowledgements }: IActionBarProps) {
         <button>
           <div className="flex flex-row items-center gap-2 py-1 px-2 rounded-md hover:bg-gray-100 hover:font-medium hover:text-red-600">
             <i className="ri-close-line"></i>
-            <p className="text-xs">Return</p>
+            <p className="text-xs">Reject</p>
           </div>
         </button>
       </div>

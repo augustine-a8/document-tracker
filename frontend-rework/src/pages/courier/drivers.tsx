@@ -1,16 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ActiveDocuments from "../../../public/active_documents.json";
-import { AddDocument } from "./add-document";
+import Driver from "../../../public/drivers.json";
 
-export function Documents() {
+export function Drivers() {
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
-  const [openAddDocumentModal, setOpenAddDocumentModal] =
-    useState<boolean>(false);
+  const [openAddDriverModal, setOpenAddDriverModal] = useState<boolean>(false);
   const navigate = useNavigate();
 
-  const toggleAddDocumentModal = () => {
-    setOpenAddDocumentModal((prev) => !prev);
+  const toggleAddDriverModal = () => {
+    setOpenAddDriverModal((prev) => !prev);
   };
 
   const goToDetails = (id: string) => {
@@ -22,15 +20,15 @@ export function Documents() {
       <div className="relative">
         <div className="h-20 flex flex-row items-center justify-between border-b border-b-gray-200 bg-white z-50">
           <div>
-            <h2 className="text-lg font-semibold">Active Documents</h2>
+            <h2 className="text-lg font-semibold">Drivers</h2>
             <p className="text-gray-500 font-medium">
-              View documents you created or have been in possesion of
+              All drivers available for dispatch
             </p>
           </div>
-          <button onClick={toggleAddDocumentModal}>
+          <button onClick={toggleAddDriverModal}>
             <div className="flex flex-row items-center gap-2 border border-blue-500 rounded-md h-8 px-4 bg-blue-500 text-white hover:opacity-75 duration-500">
               <i className="ri-add-fill"></i>
-              <p>Add new</p>
+              <p>Add driver</p>
             </div>
           </button>
         </div>
@@ -42,7 +40,7 @@ export function Documents() {
                 type="text"
                 name=""
                 id=""
-                placeholder="Search for document"
+                placeholder="Search for driver"
                 className="flex-1 outline-none border-none"
               />
             </div>
@@ -51,44 +49,25 @@ export function Documents() {
             <table className="w-full mb-4">
               <thead>
                 <tr className="flex flex-row items-center font-normal bg-gray-100 rounded-lg px-4 h-8">
-                  <th className="flex-[2_1_0] font-normal text-gray-600 text-left">
-                    Subject
+                  <th className="flex-1 font-normal text-gray-600 text-left">
+                    Driver name
                   </th>
                   <th className="flex-1 font-normal text-gray-600 text-left">
-                    Reference number
-                  </th>
-                  <th className="flex-[2_1_0] font-normal text-gray-600 text-left">
-                    Annotation
-                  </th>
-                  <th className="flex-1 font-normal text-gray-600 text-left">
-                    Date
+                    Driver contact
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {ActiveDocuments.documents.map((document) => (
+                {Driver.map((driver) => (
                   <tr
-                    key={document.id}
+                    key={driver.id}
                     className="flex flex-row items-center font-medium px-4 h-12 border-b border-b-gray-100 hover:cursor-pointer hover:shadow-table hover:rounded-md"
                     onClick={() => {
-                      goToDetails(String(document.id));
+                      goToDetails(String(driver.id));
                     }}
                   >
-                    <td className="flex-[2_1_0] font-normal">
-                      {/* <div className="flex flex-row items-center gap-4">
-                      <input type="checkbox" name="" id="" />
-                    </div> */}
-                      {document.subject}
-                    </td>
-                    <td className="flex-1 font-normal">
-                      {document.referenceNumber}
-                    </td>
-                    <td className="flex-[2_1_0] font-normal">
-                      {document.annotation}
-                    </td>
-                    <td className="flex-1 font-normal">
-                      {new Date(document.date).toDateString()}
-                    </td>
+                    <td className="flex-1 font-normal">{driver.name}</td>
+                    <td className="flex-1 font-normal">{driver.contact}</td>
                   </tr>
                 ))}
               </tbody>
@@ -141,10 +120,10 @@ export function Documents() {
           </div>
         </div>
       </div>
-      <AddDocument
+      {/* <AddDocument
         isOpen={openAddDocumentModal}
         toggleModal={toggleAddDocumentModal}
-      />
+      /> */}
     </>
   );
 }

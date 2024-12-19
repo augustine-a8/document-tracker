@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ActiveDocuments from "../../../public/active_documents.json";
-import { AddDocument } from "./add-document";
+import Archives from "../../../public/archives.json";
+import { AddToArchive } from "./add-to-archive";
 
 export function Documents() {
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
@@ -22,15 +22,15 @@ export function Documents() {
       <div className="relative">
         <div className="h-20 flex flex-row items-center justify-between border-b border-b-gray-200 bg-white z-50">
           <div>
-            <h2 className="text-lg font-semibold">Active Documents</h2>
+            <h2 className="text-lg font-semibold">Archives</h2>
             <p className="text-gray-500 font-medium">
-              View documents you created or have been in possesion of
+              All documents in archives
             </p>
           </div>
           <button onClick={toggleAddDocumentModal}>
             <div className="flex flex-row items-center gap-2 border border-blue-500 rounded-md h-8 px-4 bg-blue-500 text-white hover:opacity-75 duration-500">
               <i className="ri-add-fill"></i>
-              <p>Add new</p>
+              <p>Add to archive</p>
             </div>
           </button>
         </div>
@@ -42,7 +42,7 @@ export function Documents() {
                 type="text"
                 name=""
                 id=""
-                placeholder="Search for document"
+                placeholder="Search archives"
                 className="flex-1 outline-none border-none"
               />
             </div>
@@ -51,22 +51,25 @@ export function Documents() {
             <table className="w-full mb-4">
               <thead>
                 <tr className="flex flex-row items-center font-normal bg-gray-100 rounded-lg px-4 h-8">
-                  <th className="flex-[2_1_0] font-normal text-gray-600 text-left">
-                    Subject
+                  <th className="flex-1 font-normal text-gray-600 text-left">
+                    Item number
                   </th>
                   <th className="flex-1 font-normal text-gray-600 text-left">
-                    Reference number
+                    Archival number
                   </th>
                   <th className="flex-[2_1_0] font-normal text-gray-600 text-left">
-                    Annotation
+                    Description
                   </th>
                   <th className="flex-1 font-normal text-gray-600 text-left">
-                    Date
+                    Covering date
+                  </th>
+                  <th className="flex-[2_1_0] font-normal text-gray-600 text-left">
+                    Remarks
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {ActiveDocuments.documents.map((document) => (
+                {Archives.archives.map((document) => (
                   <tr
                     key={document.id}
                     className="flex flex-row items-center font-medium px-4 h-12 border-b border-b-gray-100 hover:cursor-pointer hover:shadow-table hover:rounded-md"
@@ -74,20 +77,23 @@ export function Documents() {
                       goToDetails(String(document.id));
                     }}
                   >
-                    <td className="flex-[2_1_0] font-normal">
+                    <td className="flex-1 font-normal">
                       {/* <div className="flex flex-row items-center gap-4">
                       <input type="checkbox" name="" id="" />
                     </div> */}
-                      {document.subject}
+                      {document.itemNumber}
                     </td>
                     <td className="flex-1 font-normal">
-                      {document.referenceNumber}
+                      {document.archivalNumber}
                     </td>
                     <td className="flex-[2_1_0] font-normal">
-                      {document.annotation}
+                      {document.description}
                     </td>
                     <td className="flex-1 font-normal">
-                      {new Date(document.date).toDateString()}
+                      {document.coveringDate}
+                    </td>
+                    <td className="flex-[2_1_0] font-normal">
+                      {document.remarks}
                     </td>
                   </tr>
                 ))}
@@ -141,7 +147,7 @@ export function Documents() {
           </div>
         </div>
       </div>
-      <AddDocument
+      <AddToArchive
         isOpen={openAddDocumentModal}
         toggleModal={toggleAddDocumentModal}
       />
