@@ -1,11 +1,10 @@
 import "reflect-metadata";
 import { config as dotenvConfig } from "dotenv";
+dotenvConfig();
 import http from "http";
 
 import { app } from "./app";
 import { AppDataSource } from "./config/database";
-
-dotenvConfig();
 
 const PORT = process.env.PORT || 3000;
 
